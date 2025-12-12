@@ -87,13 +87,12 @@ class AdminHandler(
             return@secureStep
         }
 
-        transfer(telegramId)
         next(null)
         sendMessage(
             "Выбери роль для пользователя:",
             replyMarkup = inlineKeyboard(
-                callbackButton("User", BotCallbacks.ROLE_USER.callback),
-                callbackButton("Admin", BotCallbacks.ROLE_ADMIN.callback)
+                callbackButton("User", next = BotCallbacks.ROLE_USER.callback, content = "id:$telegramId"),
+                callbackButton("Admin", next = BotCallbacks.ROLE_ADMIN.callback, content = "id:$telegramId")
             )
         )
     }
@@ -111,44 +110,45 @@ class AdminHandler(
             return@secureStep
         }
 
-        transfer(username)
         next(null)
         sendMessage(
             "Выбери роль для @$username:",
             replyMarkup = inlineKeyboard(
-                callbackButton("User", BotCallbacks.ROLE_USER.callback),
-                callbackButton("Admin", BotCallbacks.ROLE_ADMIN.callback)
+                callbackButton("User", next = BotCallbacks.ROLE_USER.callback, content = "username:$username"),
+                callbackButton("Admin", next = BotCallbacks.ROLE_ADMIN.callback, content = "username:$username")
             )
         )
     }
 
     secureCallback(BotCallbacks.ROLE_USER, auth) {
-        val data = transferredOrNull<Any>()
-        when (data) {
-            is Long -> {
-                botUserService.createUser(data, UserRole.USER)
-                sendMessage("Пользователь с ID $data добавлен с ролью USER")
+        val data = transferred<String>()
+        when {
+            data.startsWith("id:") -> {
+                val telegramId = data.removePrefix("id:").toLong()
+                botUserService.createUser(telegramId, UserRole.USER)
+                sendMessage("Пользователь с ID $telegramId добавлен с ролью USER")
             }
-            is String -> {
-                invitationService.create(data, UserRole.USER, from.id)
-                sendMessage("Приглашение для @$data создано с ролью USER.\nПользователь получит доступ после /start")
+            data.startsWith("username:") -> {
+                val username = data.removePrefix("username:")
+                invitationService.create(username, UserRole.USER, from.id)
+                sendMessage("Приглашение для @$username создано с ролью USER.\nПользователь получит доступ после /start")
             }
-            else -> sendMessage("Ошибка: данные не найдены. Попробуй снова /add_user")
         }
     }
 
     secureCallback(BotCallbacks.ROLE_ADMIN, auth) {
-        val data = transferredOrNull<Any>()
-        when (data) {
-            is Long -> {
-                botUserService.createUser(data, UserRole.ADMIN)
-                sendMessage("Пользователь с ID $data добавлен с ролью ADMIN")
+        val data = transferred<String>()
+        when {
+            data.startsWith("id:") -> {
+                val telegramId = data.removePrefix("id:").toLong()
+                botUserService.createUser(telegramId, UserRole.ADMIN)
+                sendMessage("Пользователь с ID $telegramId добавлен с ролью ADMIN")
             }
-            is String -> {
-                invitationService.create(data, UserRole.ADMIN, from.id)
-                sendMessage("Приглашение для @$data создано с ролью ADMIN.\nПользователь получит доступ после /start")
+            data.startsWith("username:") -> {
+                val username = data.removePrefix("username:")
+                invitationService.create(username, UserRole.ADMIN, from.id)
+                sendMessage("Приглашение для @$username создано с ролью ADMIN.\nПользователь получит доступ после /start")
             }
-            else -> sendMessage("Ошибка: данные не найдены. Попробуй снова /add_user")
         }
     }
 
