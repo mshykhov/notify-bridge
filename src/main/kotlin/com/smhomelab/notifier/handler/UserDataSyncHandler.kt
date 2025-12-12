@@ -14,8 +14,8 @@ class UserDataSyncHandler(
         botUserService.syncUserData(from.id, from.username, from.firstName, from.lastName)
     }
 
-    message { sync(from) }
-    editedMessage { sync(from) }
+    message { from?.let { sync(it) } }
+    editedMessage { from?.let { sync(it) } }
     callbackQuery { sync(from) }
     inlineQuery { sync(from) }
     chosenInlineResult { sync(from) }
