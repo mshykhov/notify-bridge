@@ -13,6 +13,7 @@ import com.smhomelab.notifier.service.InvitationService
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler
+import io.github.dehuckakpyt.telegrambot.model.telegram.InlineKeyboardButton
 
 @HandlerComponent
 class AdminHandler(
@@ -122,11 +123,33 @@ class AdminHandler(
     }
 
     secureCallback(BotCallbacks.ROLE_USER, auth) {
-        handleRoleSelection(UserRole.USER)
+        val data = transferredOrNull<Any>()
+        when (data) {
+            is Long -> {
+                botUserService.createUser(data, UserRole.USER)
+                sendMessage("Пользователь с ID $data добавлен с ролью USER")
+            }
+            is String -> {
+                invitationService.create(data, UserRole.USER, from.id)
+                sendMessage("Приглашение для @$data создано с ролью USER.\nПользователь получит доступ после /start")
+            }
+            else -> sendMessage("Ошибка: данные не найдены. Попробуй снова /add_user")
+        }
     }
 
     secureCallback(BotCallbacks.ROLE_ADMIN, auth) {
-        handleRoleSelection(UserRole.ADMIN)
+        val data = transferredOrNull<Any>()
+        when (data) {
+            is Long -> {
+                botUserService.createUser(data, UserRole.ADMIN)
+                sendMessage("Пользователь с ID $data добавлен с ролью ADMIN")
+            }
+            is String -> {
+                invitationService.create(data, UserRole.ADMIN, from.id)
+                sendMessage("Приглашение для @$data создано с ролью ADMIN.\nПользователь получит доступ после /start")
+            }
+            else -> sendMessage("Ошибка: данные не найдены. Попробуй снова /add_user")
+        }
     }
 
     // === REMOVE_USER ===
@@ -139,61 +162,38 @@ class AdminHandler(
             return@secureCommand
         }
 
-        val buttons = mutableListOf<Pair<String, String>>()
+        val buttons = mutableListOf<InlineKeyboardButton>()
 
         users.forEach { user ->
             val label = user.username?.let { "@$it" } ?: "ID:${user.telegramId}"
-            buttons.add(label to "remove:user:${user.telegramId}")
+            buttons.add(callbackButton(label, next = BotCallbacks.REMOVE_USER.callback, content = user.telegramId.toString()))
         }
 
         invitations.forEach { inv ->
-            buttons.add("@${inv.username} (invite)" to "remove:invite:${inv.username}")
+            buttons.add(callbackButton("@${inv.username} (invite)", next = BotCallbacks.REMOVE_INVITE.callback, content = inv.username))
         }
 
-        buttons.add("Отмена" to BotCallbacks.ADMIN_CANCEL.callback)
+        buttons.add(callbackButton("Отмена", BotCallbacks.ADMIN_CANCEL.callback))
 
         sendMessage(
             "Выбери кого удалить:",
-            replyMarkup = inlineKeyboard(*buttons.map { callbackButton(it.first, it.second) }.toTypedArray())
+            replyMarkup = inlineKeyboard(*buttons.toTypedArray())
         )
     }
 
-    callbackWithPrefix("remove:user:") {
-        if (!auth.isAuthorized(from.id, UserRole.ADMIN)) return@callbackWithPrefix
-
-        val telegramId = callbackData.removePrefix("remove:user:").toLongOrNull()
+    secureCallback(BotCallbacks.REMOVE_USER, auth) {
+        val telegramId = transferred<String>().toLongOrNull()
         if (telegramId == null) {
             sendMessage("Ошибка: неверный ID")
-            return@callbackWithPrefix
+            return@secureCallback
         }
-
         botUserService.deleteUser(telegramId)
         sendMessage("Пользователь удалён")
     }
 
-    callbackWithPrefix("remove:invite:") {
-        if (!auth.isAuthorized(from.id, UserRole.ADMIN)) return@callbackWithPrefix
-
-        val username = callbackData.removePrefix("remove:invite:")
+    secureCallback(BotCallbacks.REMOVE_INVITE, auth) {
+        val username = transferred<String>()
         invitationService.delete(username)
         sendMessage("Приглашение для @$username удалено")
     }
-}) {
-    private suspend fun io.github.dehuckakpyt.telegrambot.container.CallbackContainer.handleRoleSelection(role: UserRole) {
-        val data = transferredOrNull<Any>()
-
-        when (data) {
-            is Long -> {
-                botUserService.createUser(data, role)
-                sendMessage("Пользователь с ID $data добавлен с ролью $role")
-            }
-            is String -> {
-                invitationService.create(data, role, from.id)
-                sendMessage("Приглашение для @$data создано с ролью $role.\nПользователь получит доступ после /start")
-            }
-            else -> {
-                sendMessage("Ошибка: данные не найдены. Попробуй снова /add_user")
-            }
-        }
-    }
-}
+})
