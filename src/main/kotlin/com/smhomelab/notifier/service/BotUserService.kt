@@ -75,6 +75,10 @@ class BotUserService(
         log.info("User deleted: telegramId=$telegramId")
     }
 
+    fun syncUserData(telegramId: Long, username: String?, firstName: String?, lastName: String?) {
+        botUserFacade.updateUserInfoIfChanged(telegramId, username, firstName, lastName)
+    }
+
     fun updateUserInfo(telegramId: Long, username: String?, firstName: String?, lastName: String?) {
         botUserFacade.updateUserInfo(telegramId, username, firstName, lastName)
     }

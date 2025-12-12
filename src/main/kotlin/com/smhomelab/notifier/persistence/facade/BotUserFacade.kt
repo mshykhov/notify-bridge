@@ -50,4 +50,15 @@ class BotUserFacade(
         user.lastName = lastName
         botUserRepository.save(user)
     }
+
+    fun updateUserInfoIfChanged(telegramId: Long, username: String?, firstName: String?, lastName: String?) {
+        val user = botUserRepository.findByTelegramId(telegramId) ?: return
+        if (user.username == username && user.firstName == firstName && user.lastName == lastName) {
+            return
+        }
+        user.username = username
+        user.firstName = firstName
+        user.lastName = lastName
+        botUserRepository.save(user)
+    }
 }

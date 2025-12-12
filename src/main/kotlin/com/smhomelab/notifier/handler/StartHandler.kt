@@ -25,7 +25,6 @@ class StartHandler(
         }
 
         if (botUserService.existsByTelegramId(telegramId)) {
-            botUserService.updateUserInfo(telegramId, username, from.firstName, from.lastName)
             botUserService.cleanupOrphanedInvitation(username)
             sendMessage("Используй /help для списка команд.")
             return@command
