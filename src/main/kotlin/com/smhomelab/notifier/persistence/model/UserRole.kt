@@ -1,4 +1,4 @@
-package com.smhomelab.notifier.model
+package com.smhomelab.notifier.persistence.model
 
 enum class UserRole(val level: Int) {
     USER(1),

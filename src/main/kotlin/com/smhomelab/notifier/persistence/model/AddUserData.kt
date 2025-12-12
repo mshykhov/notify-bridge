@@ -1,4 +1,4 @@
-package com.smhomelab.notifier.model
+package com.smhomelab.notifier.persistence.model
 
 sealed class AddUserData {
     data class ById(val telegramId: Long) : AddUserData()

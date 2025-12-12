@@ -2,8 +2,8 @@ package com.smhomelab.notifier.service
 
 import com.smhomelab.notifier.bot.BotCommands
 import com.smhomelab.notifier.config.AdminProperties
-import com.smhomelab.notifier.model.UserRole
-import com.smhomelab.notifier.repository.BotUserRepository
+import com.smhomelab.notifier.persistence.facade.BotUserFacade
+import com.smhomelab.notifier.persistence.model.UserRole
 import io.github.dehuckakpyt.telegrambot.TelegramBot
 import io.github.dehuckakpyt.telegrambot.model.telegram.BotCommandScopeChat
 import org.slf4j.LoggerFactory
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 @Service
 class BotCommandMenuService(
     private val telegramBot: TelegramBot,
-    private val botUserRepository: BotUserRepository,
+    private val botUserFacade: BotUserFacade,
     private val adminProperties: AdminProperties
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -41,19 +41,16 @@ class BotCommandMenuService(
     }
 
     suspend fun initializeAllCommands() {
-        // Global (public)
         telegramBot.setMyCommands(
             commands = BotCommands.forRole(null).map { it.toBotCommand() }
         )
 
-        // Master admin - all commands
         telegramBot.setMyCommands(
             commands = BotCommands.all(),
             scope = BotCommandScopeChat(chatId = adminProperties.masterAdminId.toString())
         )
 
-        // Each registered user
-        botUserRepository.findAll().forEach { user ->
+        botUserFacade.findAll().forEach { user ->
             updateCommandsForUser(user.telegramId, user.role)
         }
 

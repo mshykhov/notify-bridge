@@ -1,47 +1,34 @@
 package com.smhomelab.notifier.service
 
-import com.smhomelab.notifier.model.BotUserInvitation
-import com.smhomelab.notifier.model.UserRole
-import com.smhomelab.notifier.repository.BotUserInvitationRepository
+import com.smhomelab.notifier.persistence.facade.InvitationFacade
+import com.smhomelab.notifier.persistence.model.BotUserInvitation
+import com.smhomelab.notifier.persistence.model.UserRole
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 
 @Service
-@Transactional
 class InvitationService(
-    private val invitationRepository: BotUserInvitationRepository
+    private val invitationFacade: InvitationFacade
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
     fun create(username: String, role: UserRole, createdBy: Long): BotUserInvitation {
-        val invitation = invitationRepository.save(
-            BotUserInvitation(
-                username = username.lowercase(),
-                role = role,
-                createdBy = createdBy
-            )
-        )
+        val invitation = invitationFacade.create(username, role, createdBy)
         log.info("Invitation created: @$username, role=$role, by=$createdBy")
         return invitation
     }
 
     fun findByUsername(username: String): BotUserInvitation? =
-        invitationRepository.findByUsernameIgnoreCase(username.lowercase())
+        invitationFacade.findByUsername(username)
 
     fun existsByUsername(username: String): Boolean =
-        invitationRepository.existsByUsernameIgnoreCase(username.lowercase())
+        invitationFacade.existsByUsername(username)
 
     fun delete(username: String) {
-        invitationRepository.deleteByUsernameIgnoreCase(username.lowercase())
+        invitationFacade.delete(username)
         log.info("Invitation deleted: @$username")
     }
 
-    fun deleteById(id: Long) {
-        invitationRepository.deleteById(id)
-        log.info("Invitation deleted: id=$id")
-    }
-
     fun getAll(): List<BotUserInvitation> =
-        invitationRepository.findAll()
+        invitationFacade.findAll()
 }

@@ -1,6 +1,6 @@
-package com.smhomelab.notifier.repository
+package com.smhomelab.notifier.persistence.repository
 
-import com.smhomelab.notifier.model.BotUserInvitation
+import com.smhomelab.notifier.persistence.model.BotUserInvitation
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.stereotype.Repository

@@ -1,4 +1,4 @@
-package com.smhomelab.notifier.model
+package com.smhomelab.notifier.persistence.model
 
 import jakarta.persistence.*
 import org.hibernate.annotations.CreationTimestamp
