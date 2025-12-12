@@ -1,64 +1,72 @@
 package com.smhomelab.notifier.handler
 
+import com.smhomelab.notifier.bot.BotCallbacks
 import com.smhomelab.notifier.bot.BotCommands
-import io.github.dehuckakpyt.telegrambot.handler.BotHandler
+import com.smhomelab.notifier.bot.BotSteps
+import com.smhomelab.notifier.bot.secureCallback
+import com.smhomelab.notifier.bot.secureCommand
+import com.smhomelab.notifier.bot.secureStep
+import com.smhomelab.notifier.service.AuthorizationService
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
+import io.github.dehuckakpyt.telegrambot.handler.BotHandler
 
 @HandlerComponent
-class SettingsHandler : BotHandler({
+class SettingsHandler(
+    private val auth: AuthorizationService,
+) : BotHandler({
 
-    command(BotCommands.SETTINGS.slashCommand) {
+    secureCommand(BotCommands.SETTINGS, auth) {
         sendMessage(
             "Выбери что настроить:",
             replyMarkup = inlineKeyboard(
-                callbackButton("🔔 Уведомления", "settings:notifications"),
-                callbackButton("⏰ Время тишины", "settings:quiet_hours"),
-                callbackButton("❌ Отмена", "settings:cancel")
+                callbackButton("Уведомления", BotCallbacks.SETTINGS_NOTIFICATIONS.callback),
+                callbackButton("Время тишины", BotCallbacks.SETTINGS_QUIET_HOURS.callback),
+                callbackButton("Отмена", BotCallbacks.SETTINGS_CANCEL.callback)
             )
         )
     }
 
-    callback("settings:notifications") {
+    secureCallback(BotCallbacks.SETTINGS_NOTIFICATIONS, auth) {
         sendMessage(
             "Какие уведомления включить?",
             replyMarkup = inlineKeyboard(
-                callbackButton("✅ Все", "notify:all"),
-                callbackButton("⚠️ Только важные", "notify:important"),
-                callbackButton("🔕 Выключить", "notify:off")
+                callbackButton("Все", BotCallbacks.NOTIFY_ALL.callback),
+                callbackButton("Только важные", BotCallbacks.NOTIFY_IMPORTANT.callback),
+                callbackButton("Выключить", BotCallbacks.NOTIFY_OFF.callback)
             )
         )
     }
 
-    callback("notify:all") {
-        sendMessage("✅ Все уведомления включены")
+    secureCallback(BotCallbacks.NOTIFY_ALL, auth) {
+        sendMessage("Все уведомления включены")
     }
 
-    callback("notify:important") {
-        sendMessage("⚠️ Только важные уведомления включены")
+    secureCallback(BotCallbacks.NOTIFY_IMPORTANT, auth) {
+        sendMessage("Только важные уведомления включены")
     }
 
-    callback("notify:off") {
-        sendMessage("🔕 Уведомления выключены")
+    secureCallback(BotCallbacks.NOTIFY_OFF, auth) {
+        sendMessage("Уведомления выключены")
     }
 
-    callback("settings:quiet_hours", next = "get_quiet_start") {
+    secureCallback(BotCallbacks.SETTINGS_QUIET_HOURS, auth, next = BotSteps.GET_QUIET_START.step) {
         sendMessage("Введи время начала тишины (например: 22:00):")
     }
 
-    step("get_quiet_start", next = "get_quiet_end") {
+    secureStep(BotSteps.GET_QUIET_START, auth, next = BotSteps.GET_QUIET_END.step) {
         val startTime = text
         sendMessage("Время начала: $startTime\nТеперь введи время окончания (например: 08:00):")
         transfer(startTime)
     }
 
-    step("get_quiet_end") {
+    secureStep(BotSteps.GET_QUIET_END, auth) {
         val startTime = transferred<String>()
         val endTime = text
-        sendMessage("⏰ Время тишины установлено: $startTime - $endTime")
+        sendMessage("Время тишины установлено: $startTime - $endTime")
     }
 
-    callback("settings:cancel") {
+    secureCallback(BotCallbacks.SETTINGS_CANCEL, auth) {
         sendMessage("Настройки закрыты")
     }
 })
