@@ -1,6 +1,6 @@
 package com.smhomelab.notifier.bot
 
-import com.smhomelab.notifier.model.UserRole
+import com.smhomelab.notifier.persistence.model.UserRole
 import io.github.dehuckakpyt.telegrambot.model.telegram.BotCommand
 
 enum class BotCommands(

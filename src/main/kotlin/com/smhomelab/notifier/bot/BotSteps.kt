@@ -1,6 +1,6 @@
 package com.smhomelab.notifier.bot
 
-import com.smhomelab.notifier.model.UserRole
+import com.smhomelab.notifier.persistence.model.UserRole
 
 enum class BotSteps(
     val step: String,
