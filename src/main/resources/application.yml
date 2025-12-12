@@ -1,3 +1,7 @@
+notifier:
+  admin:
+    master-admin-id: ${MASTER_ADMIN_ID}
+
 spring:
   application:
     name: notifier
