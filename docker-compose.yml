@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: notifier-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-notifier}
+      POSTGRES_USER: ${DB_USERNAME:-notifier}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-notifier}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - notifier-db-data:/var/lib/postgresql/data
+
+volumes:
+  notifier-db-data:

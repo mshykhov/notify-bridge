@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: notifier
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:notifier}
+    username: ${DB_USERNAME:notifier}
+    password: ${DB_PASSWORD:notifier}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+telegram-bot:
+  token: ${TELEGRAM_BOT_TOKEN}
+  username: ${TELEGRAM_BOT_USERNAME}
+  source-jpa:
+    enabled: true
+    message-source:
+      enabled: false
+    chain-source:
+      enabled: true
+    callback-content-source:
+      enabled: true
+      per-user: 20
+    user-source:
+      enabled: true
+    chat-source:
+      enabled: false
+    chat-status-event-source:
+      enabled: false
