@@ -20,13 +20,14 @@ class StartHandler(
         val username = from.username
 
         if (auth.isMasterAdmin(telegramId)) {
-            sendMessage("Привет, чемпион! Используй /help для списка команд.")
+            sendMessage("Используй /help для списка команд.")
             return@command
         }
 
         if (botUserService.existsByTelegramId(telegramId)) {
             botUserService.updateUserInfo(telegramId, username, from.firstName, from.lastName)
-            sendMessage("С возвращением чемпион! Используй /help для списка команд.")
+            botUserService.cleanupOrphanedInvitation(username)
+            sendMessage("Используй /help для списка команд.")
             return@command
         }
 
@@ -34,12 +35,11 @@ class StartHandler(
             val invitation = invitationService.findByUsername(username)
             if (invitation != null) {
                 botUserService.activateFromInvitation(invitation, telegramId, from.firstName, from.lastName)
-                sendMessage("Добро пожаловать чемпион! Твой аккаунт активирован. Используй /help для списка команд.")
+                sendMessage("Твой аккаунт активирован. Используй /help для списка команд.")
                 return@command
             }
         }
 
-        botUserService.cleanupOrphanedInvitation(username)
         sendMessage("У тебя нет доступа к боту. Обратись к администратору.")
     }
 

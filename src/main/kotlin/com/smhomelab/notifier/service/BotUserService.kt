@@ -22,6 +22,14 @@ class BotUserService(
     fun getAllUsers(): List<BotUserEntity> =
         botUserFacade.findAll().filter { it.telegramId != adminProperties.masterAdminId }
 
+    fun ensureMasterAdminExists() {
+        val masterAdminId = adminProperties.masterAdminId
+        if (!botUserFacade.existsByTelegramId(masterAdminId)) {
+            botUserFacade.create(masterAdminId, UserRole.ADMIN)
+            log.info("Master admin created: telegramId=$masterAdminId")
+        }
+    }
+
     fun existsByTelegramId(telegramId: Long): Boolean =
         botUserFacade.existsByTelegramId(telegramId)
 
