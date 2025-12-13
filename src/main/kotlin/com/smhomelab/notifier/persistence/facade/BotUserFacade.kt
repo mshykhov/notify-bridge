@@ -61,10 +61,4 @@ class BotUserFacade(
         user.lastName = lastName
         botUserRepository.save(user)
     }
-
-    fun updatePushoverKey(telegramId: Long, pushoverUserKey: String?) {
-        val user = botUserRepository.findByTelegramId(telegramId) ?: return
-        user.pushoverUserKey = pushoverUserKey
-        botUserRepository.save(user)
-    }
 }

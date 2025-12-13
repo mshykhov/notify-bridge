@@ -1,21 +1,21 @@
 package com.smhomelab.notifier.service
 
 import com.smhomelab.notifier.common.ValidationResult
-import com.smhomelab.notifier.persistence.facade.BotUserFacade
+import com.smhomelab.notifier.persistence.facade.UserPushoverConfigFacade
+import com.smhomelab.notifier.persistence.model.UserPushoverConfig
 import com.smhomelab.notifier.pushover.PushoverService
 import org.springframework.stereotype.Service
 
 @Service
 class SettingsService(
-    private val botUserFacade: BotUserFacade,
+    private val pushoverConfigFacade: UserPushoverConfigFacade,
     private val pushoverService: PushoverService,
 ) {
-    fun isPushoverConfigured(telegramId: Long): Boolean {
-        val user = botUserFacade.findByTelegramId(telegramId)
-        return user?.pushoverUserKey != null
-    }
+    fun getPushoverConfig(telegramId: Long): UserPushoverConfig? =
+        pushoverConfigFacade.findByTelegramId(telegramId)
 
-    fun getPushoverKey(telegramId: Long): String? = botUserFacade.findByTelegramId(telegramId)?.pushoverUserKey
+    fun isPushoverConfigured(telegramId: Long): Boolean =
+        pushoverConfigFacade.existsByTelegramId(telegramId)
 
     fun validatePushoverKey(key: String): ValidationResult<String> {
         val trimmed = key.trim()
@@ -29,19 +29,37 @@ class SettingsService(
     }
 
     fun savePushoverKey(telegramId: Long, key: String) {
-        botUserFacade.updatePushoverKey(telegramId, key)
+        val existing = pushoverConfigFacade.findByTelegramId(telegramId)
+        if (existing != null) {
+            pushoverConfigFacade.updateUserKey(telegramId, key)
+        } else {
+            pushoverConfigFacade.create(telegramId, key)
+        }
     }
 
-    fun removePushoverKey(telegramId: Long) {
-        botUserFacade.updatePushoverKey(telegramId, null)
+    fun removePushoverConfig(telegramId: Long) {
+        pushoverConfigFacade.deleteByTelegramId(telegramId)
     }
 
-    fun isPushoverEnabled(): Boolean = pushoverService.isEnabled()
+    fun setPushoverEnabled(telegramId: Long, enabled: Boolean) {
+        pushoverConfigFacade.updateEnabled(telegramId, enabled)
+    }
 
-    fun sendTestNotification(telegramId: Long): SendResult {
+    fun isServerPushoverEnabled(): Boolean = pushoverService.isEnabled()
+
+    fun sendTestNotification(telegramId: Long, priority: Int? = null): SendResult {
         if (!pushoverService.isEnabled()) return SendResult.Disabled
-        val key = getPushoverKey(telegramId) ?: return SendResult.Failed
-        return if (pushoverService.send(key, "Тестовое уведомление от Notifier", "Тест")) {
+        val config = getPushoverConfig(telegramId) ?: return SendResult.Failed
+        if (!config.enabled) return SendResult.UserDisabled
+        val actualPriority = priority ?: config.defaultPriority
+        return if (pushoverService.sendWithPriority(
+                config.userKey,
+                "Тестовое уведомление от Notifier",
+                "Тест",
+                PushoverService.Priority.entries.find { it.value == actualPriority }
+                    ?: PushoverService.Priority.NORMAL,
+            )
+        ) {
             SendResult.Sent
         } else {
             SendResult.Failed
@@ -54,5 +72,7 @@ class SettingsService(
         data object Failed : SendResult
 
         data object Disabled : SendResult
+
+        data object UserDisabled : SendResult
     }
 }

@@ -89,6 +89,7 @@ class SettingsHandler(
                         SendResult.Sent -> "✓ Pushover настроен!\n\nТестовое уведомление отправлено."
                         SendResult.Failed -> "✓ Ключ сохранён, но тест не прошёл. Проверь ключ."
                         SendResult.Disabled -> "✓ Ключ сохранён. Pushover временно недоступен."
+                        SendResult.UserDisabled -> "✓ Ключ сохранён. Уведомления отключены."
                     }
                     sendMessage(
                         message,
@@ -105,14 +106,15 @@ class SettingsHandler(
                 SendResult.Sent -> "✓ Тестовое уведомление отправлено!"
                 SendResult.Failed -> "✗ Не удалось отправить. Проверь ключ."
                 SendResult.Disabled -> "✗ Pushover временно недоступен."
+                SendResult.UserDisabled -> "✗ Уведомления отключены в настройках."
             }
             sendMessage(message)
         }
 
         secureCallback(BotCallbacks.PUSHOVER_REMOVE, auth) {
-            settingsService.removePushoverKey(from.id)
+            settingsService.removePushoverConfig(from.id)
             sendMessage(
-                "✓ Pushover отключён",
+                "✓ Pushover настройки удалены",
                 replyMarkup = inlineKeyboard(
                     callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
                 ),
