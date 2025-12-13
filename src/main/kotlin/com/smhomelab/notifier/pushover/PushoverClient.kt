@@ -1,6 +1,8 @@
 package com.smhomelab.notifier.pushover
 
 import com.smhomelab.notifier.config.PushoverProperties
+import com.smhomelab.notifier.model.PushoverRequest
+import com.smhomelab.notifier.model.PushoverResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -59,20 +61,3 @@ class PushoverClient(
         private const val API_URL = "https://api.pushover.net/1/messages.json"
     }
 }
-
-data class PushoverRequest(
-    val userKey: String,
-    val message: String,
-    val title: String? = null,
-    val priority: Int? = null,
-    val sound: String? = null,
-    val url: String? = null,
-    val urlTitle: String? = null,
-    val html: Boolean = false,
-)
-
-data class PushoverResponse(
-    val status: Int,
-    val request: String?,
-    val errors: List<String>? = null,
-)
