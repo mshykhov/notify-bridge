@@ -25,7 +25,7 @@ class StartHandler(
             if (userService.existsByTelegramId(telegramId)) {
                 userService.cleanupOrphanedInvitation(username)
                 val pushoverHint = if (!settingsService.isPushoverConfigured(telegramId)) {
-                    "\n\n💡 Настрой Pushover для получения уведомлений: <i>${BotCommands.SETTINGS.slashCommand}</i>"
+                    "\n\n<i>💡 Подключи Pushover для получения уведомлений: ${BotCommands.SETTINGS.slashCommand}</i>"
                 } else {
                     ""
                 }
@@ -42,7 +42,7 @@ class StartHandler(
                     userService.activateFromInvitation(invitation, telegramId, from.firstName, from.lastName)
                     sendMessage(
                         "Твой аккаунт активирован.\n\n" +
-                            "💡 Настрой Pushover для получения уведомлений: <i>${BotCommands.SETTINGS.slashCommand}</i>\n\n" +
+                            "<i>💡 Подключи Pushover для получения уведомлений: ${BotCommands.SETTINGS.slashCommand}</i>\n\n" +
                             "Используй ${BotCommands.HELP.slashCommand} для списка команд.",
                         parseMode = ParseMode.HTML,
                     )
