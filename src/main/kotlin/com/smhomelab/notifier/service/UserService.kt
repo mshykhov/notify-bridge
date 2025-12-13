@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
-class BotUserService(
+class UserService(
     private val botUserFacade: BotUserFacade,
     private val invitationService: InvitationService,
     private val botCommandMenuService: BotCommandMenuService,

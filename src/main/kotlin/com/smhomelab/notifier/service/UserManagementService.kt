@@ -4,12 +4,12 @@ import com.smhomelab.notifier.persistence.model.UserRole
 import org.springframework.stereotype.Service
 
 @Service
-class AdminService(
-    private val botUserService: BotUserService,
+class UserManagementService(
+    private val userService: UserService,
     private val invitationService: InvitationService
 ) {
     fun getUsersListText(): String {
-        val users = botUserService.getAllUsers()
+        val users = userService.getAllUsers()
         val invitations = invitationService.getAll()
 
         val usersText = if (users.isEmpty()) {
@@ -38,7 +38,7 @@ class AdminService(
         val telegramId = input.trim().toLongOrNull()
             ?: return ValidationResult.Invalid("Неверный формат ID. Введи число:")
 
-        if (botUserService.existsByTelegramId(telegramId)) {
+        if (userService.existsByTelegramId(telegramId)) {
             return ValidationResult.Invalid("Пользователь с таким ID уже существует")
         }
 
@@ -52,7 +52,7 @@ class AdminService(
             return ValidationResult.Invalid("Username не может быть пустым. Введи ещё раз:")
         }
 
-        if (botUserService.existsByUsername(username) || invitationService.existsByUsername(username)) {
+        if (userService.existsByUsername(username) || invitationService.existsByUsername(username)) {
             return ValidationResult.Invalid("Пользователь или приглашение с таким username уже существует")
         }
 
@@ -60,7 +60,7 @@ class AdminService(
     }
 
     suspend fun addUserById(telegramId: Long, role: UserRole): String {
-        botUserService.createUser(telegramId, role)
+        userService.createUser(telegramId, role)
         return "Пользователь с ID $telegramId добавлен с ролью $role"
     }
 
@@ -84,7 +84,7 @@ class AdminService(
     }
 
     suspend fun removeUser(telegramId: Long): String {
-        botUserService.deleteUser(telegramId)
+        userService.deleteUser(telegramId)
         return "Пользователь удалён"
     }
 
@@ -94,7 +94,7 @@ class AdminService(
     }
 
     fun hasUsersOrInvitations(): Boolean {
-        return botUserService.getAllUsers().isNotEmpty() || invitationService.getAll().isNotEmpty()
+        return userService.getAllUsers().isNotEmpty() || invitationService.getAll().isNotEmpty()
     }
 }
 

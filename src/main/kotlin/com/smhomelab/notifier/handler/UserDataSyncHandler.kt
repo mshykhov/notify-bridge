@@ -1,17 +1,17 @@
 package com.smhomelab.notifier.handler
 
-import com.smhomelab.notifier.service.BotUserService
+import com.smhomelab.notifier.service.UserService
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.handler.BotUpdateHandler
 import io.github.dehuckakpyt.telegrambot.model.telegram.User
 
 @HandlerComponent
 class UserDataSyncHandler(
-    private val botUserService: BotUserService
+    private val userService: UserService
 ) : BotUpdateHandler({
 
     fun sync(from: User) {
-        botUserService.syncUserData(from.id, from.username, from.firstName, from.lastName)
+        userService.syncUserData(from.id, from.username, from.firstName, from.lastName)
     }
 
     message { from?.let { sync(it) } }

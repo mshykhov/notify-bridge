@@ -7,10 +7,10 @@ import com.smhomelab.notifier.bot.secureCallback
 import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.bot.secureStep
 import com.smhomelab.notifier.persistence.model.UserRole
-import com.smhomelab.notifier.service.AdminService
 import com.smhomelab.notifier.service.AuthorizationService
-import com.smhomelab.notifier.service.BotUserService
 import com.smhomelab.notifier.service.InvitationService
+import com.smhomelab.notifier.service.UserManagementService
+import com.smhomelab.notifier.service.UserService
 import com.smhomelab.notifier.service.ValidationResult
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
@@ -18,16 +18,16 @@ import io.github.dehuckakpyt.telegrambot.handler.BotHandler
 import io.github.dehuckakpyt.telegrambot.model.telegram.InlineKeyboardButton
 
 @HandlerComponent
-class AdminHandler(
+class UserManagementHandler(
     private val auth: AuthorizationService,
-    private val adminService: AdminService,
-    private val botUserService: BotUserService,
+    private val userManagementService: UserManagementService,
+    private val userService: UserService,
     private val invitationService: InvitationService,
 ) : BotHandler({
 
     // === LIST_USERS ===
     secureCommand(BotCommands.LIST_USERS, auth) {
-        sendMessage(adminService.getUsersListText())
+        sendMessage(userManagementService.getUsersListText())
     }
 
     // === ADD_USER ===
@@ -55,7 +55,7 @@ class AdminHandler(
     }
 
     secureStep(BotSteps.GET_USER_ID, auth) {
-        when (val result = adminService.validateTelegramId(text)) {
+        when (val result = userManagementService.validateTelegramId(text)) {
             is ValidationResult.Invalid -> {
                 sendMessage(result.error)
                 return@secureStep
@@ -74,7 +74,7 @@ class AdminHandler(
     }
 
     secureStep(BotSteps.GET_USERNAME, auth) {
-        when (val result = adminService.validateUsername(text)) {
+        when (val result = userManagementService.validateUsername(text)) {
             is ValidationResult.Invalid -> {
                 sendMessage(result.error)
                 return@secureStep
@@ -93,23 +93,23 @@ class AdminHandler(
     }
 
     secureCallback(BotCallbacks.ROLE_USER, auth) {
-        val message = adminService.addUser(transferred<String>(), UserRole.USER, from.id)
+        val message = userManagementService.addUser(transferred<String>(), UserRole.USER, from.id)
         sendMessage(message)
     }
 
     secureCallback(BotCallbacks.ROLE_ADMIN, auth) {
-        val message = adminService.addUser(transferred<String>(), UserRole.ADMIN, from.id)
+        val message = userManagementService.addUser(transferred<String>(), UserRole.ADMIN, from.id)
         sendMessage(message)
     }
 
     // === REMOVE_USER ===
     secureCommand(BotCommands.REMOVE_USER, auth) {
-        if (!adminService.hasUsersOrInvitations()) {
+        if (!userManagementService.hasUsersOrInvitations()) {
             sendMessage("Нет пользователей или приглашений для удаления")
             return@secureCommand
         }
 
-        val users = botUserService.getAllUsers()
+        val users = userService.getAllUsers()
         val invitations = invitationService.getAll()
         val buttons = mutableListOf<InlineKeyboardButton>()
 
@@ -136,12 +136,12 @@ class AdminHandler(
             sendMessage("Ошибка: неверный ID")
             return@secureCallback
         }
-        val message = adminService.removeUser(telegramId)
+        val message = userManagementService.removeUser(telegramId)
         sendMessage(message)
     }
 
     secureCallback(BotCallbacks.REMOVE_INVITE, auth) {
-        val message = adminService.removeInvitation(transferred<String>())
+        val message = userManagementService.removeInvitation(transferred<String>())
         sendMessage(message)
     }
 })
