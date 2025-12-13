@@ -4,6 +4,9 @@ notifier:
   pushover:
     enabled: ${PUSHOVER_ENABLED:false}
     api-token: ${PUSHOVER_API_TOKEN:}
+  healthchecks:
+    enabled: ${HEALTHCHECKS_ENABLED:false}
+    ping-url: ${HEALTHCHECKS_PING_URL:}
 
 logging:
   level:
