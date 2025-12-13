@@ -16,6 +16,7 @@ enum class BotCommands(
     SETTINGS("settings", "Настройки уведомлений", UserRole.USER),
 
     // Admin
+    ADMIN("admin", "Панель администратора", UserRole.ADMIN),
     LIST_USERS("list_users", "Список пользователей", UserRole.ADMIN),
     ADD_USER("add_user", "Добавить пользователя", UserRole.ADMIN),
     REMOVE_USER("remove_user", "Удалить пользователя", UserRole.ADMIN),

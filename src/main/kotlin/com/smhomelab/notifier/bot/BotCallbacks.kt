@@ -23,6 +23,8 @@ enum class BotCallbacks(
     ADMIN_ADD_BY_ID("admin:add:by_id", UserRole.ADMIN),
     ADMIN_ADD_BY_USERNAME("admin:add:by_username", UserRole.ADMIN),
     ADMIN_CANCEL("admin:cancel", UserRole.ADMIN),
+    ADMIN_LIMITS_REFRESH("admin:limits:refresh", UserRole.ADMIN),
+    ADMIN_BACK("admin:back", UserRole.ADMIN),
     ROLE_USER("role:USER", UserRole.ADMIN),
     ROLE_ADMIN("role:ADMIN", UserRole.ADMIN),
     REMOVE_USER("remove:user", UserRole.ADMIN),

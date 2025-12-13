@@ -1,7 +1,9 @@
 package com.smhomelab.notifier.pushover
 
 import com.smhomelab.notifier.config.PushoverProperties
+import com.smhomelab.notifier.model.pushover.LimitsMonitorCallback
 import com.smhomelab.notifier.model.pushover.NotificationPriority
+import com.smhomelab.notifier.model.pushover.PushoverLimits
 import com.smhomelab.notifier.model.pushover.PushoverRequest
 import com.smhomelab.notifier.model.pushover.PushoverSound
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -15,6 +17,8 @@ class PushoverService(
     private val client: PushoverClient,
     private val properties: PushoverProperties,
 ) {
+    private var limitsMonitor: LimitsMonitorCallback? = null
+
     @PostConstruct
     fun logStatus() {
         if (properties.enabled) {
@@ -25,7 +29,13 @@ class PushoverService(
         }
     }
 
+    fun setLimitsMonitor(callback: LimitsMonitorCallback) {
+        this.limitsMonitor = callback
+    }
+
     fun isEnabled(): Boolean = properties.enabled
+
+    fun fetchLimits(): PushoverLimits? = client.fetchLimits()
 
     fun send(
         userKey: String,
@@ -52,7 +62,11 @@ class PushoverService(
             retry = if (priority == NotificationPriority.EMERGENCY) DEFAULT_EMERGENCY_RETRY else null,
             expire = if (priority == NotificationPriority.EMERGENCY) DEFAULT_EMERGENCY_EXPIRE else null,
         )
-        return client.sendMessage(request).status == 1
+        val success = client.sendMessage(request).status == 1
+        if (success) {
+            limitsMonitor?.onMessageSent()
+        }
+        return success
     }
 
     fun getDefaultSoundForPriority(priority: NotificationPriority): PushoverSound? =
