@@ -1,6 +1,5 @@
 package com.smhomelab.notifier.config
 
-import com.smhomelab.notifier.bot.CustomExceptionHandler
 import com.smhomelab.notifier.service.BotCommandMenuService
 import com.smhomelab.notifier.service.UserService
 import io.github.dehuckakpyt.telegrambot.annotation.EnableTelegramBot

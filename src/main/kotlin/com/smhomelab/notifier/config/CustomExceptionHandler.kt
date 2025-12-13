@@ -1,4 +1,4 @@
-package com.smhomelab.notifier.bot
+package com.smhomelab.notifier.config
 
 import io.github.dehuckakpyt.telegrambot.TelegramBot
 import io.github.dehuckakpyt.telegrambot.exception.api.TelegramBotApiException
