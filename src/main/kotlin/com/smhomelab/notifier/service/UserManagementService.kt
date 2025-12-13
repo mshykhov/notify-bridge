@@ -1,5 +1,6 @@
 package com.smhomelab.notifier.service
 
+import com.smhomelab.notifier.common.ValidationResult
 import com.smhomelab.notifier.persistence.model.UserRole
 import org.springframework.stereotype.Service
 
@@ -96,9 +97,4 @@ class UserManagementService(
     fun hasUsersOrInvitations(): Boolean {
         return userService.getAllUsers().isNotEmpty() || invitationService.getAll().isNotEmpty()
     }
-}
-
-sealed class ValidationResult<out T> {
-    data class Valid<T>(val value: T) : ValidationResult<T>()
-    data class Invalid(val error: String) : ValidationResult<Nothing>()
 }

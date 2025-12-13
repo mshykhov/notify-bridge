@@ -6,12 +6,12 @@ import com.smhomelab.notifier.bot.BotSteps
 import com.smhomelab.notifier.bot.secureCallback
 import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.bot.secureStep
+import com.smhomelab.notifier.common.ValidationResult
 import com.smhomelab.notifier.persistence.model.UserRole
 import com.smhomelab.notifier.service.AuthorizationService
 import com.smhomelab.notifier.service.InvitationService
 import com.smhomelab.notifier.service.UserManagementService
 import com.smhomelab.notifier.service.UserService
-import com.smhomelab.notifier.service.ValidationResult
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler
@@ -102,7 +102,6 @@ class UserManagementHandler(
         sendMessage(message)
     }
 
-    // === REMOVE_USER ===
     secureCommand(BotCommands.REMOVE_USER, auth) {
         if (!userManagementService.hasUsersOrInvitations()) {
             sendMessage("Нет пользователей или приглашений для удаления")

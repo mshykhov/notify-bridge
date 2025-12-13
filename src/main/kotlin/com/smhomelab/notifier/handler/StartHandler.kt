@@ -19,14 +19,9 @@ class StartHandler(
         val telegramId = from.id
         val username = from.username
 
-        if (auth.isMasterAdmin(telegramId)) {
-            sendMessage("Используй /help для списка команд.")
-            return@command
-        }
-
         if (userService.existsByTelegramId(telegramId)) {
             userService.cleanupOrphanedInvitation(username)
-            sendMessage("Используй /help для списка команд.")
+            sendMessage("Используй ${BotCommands.HELP.slashCommand} для списка команд.")
             return@command
         }
 
@@ -34,12 +29,10 @@ class StartHandler(
             val invitation = invitationService.findByUsername(username)
             if (invitation != null) {
                 userService.activateFromInvitation(invitation, telegramId, from.firstName, from.lastName)
-                sendMessage("Твой аккаунт активирован. Используй /help для списка команд.")
+                sendMessage("Твой аккаунт активирован. Используй ${BotCommands.HELP.slashCommand} для списка команд.")
                 return@command
             }
         }
-
-        sendMessage("У тебя нет доступа к боту. Обратись к администратору.")
     }
 
     secureCommand(BotCommands.HELP, auth) {
