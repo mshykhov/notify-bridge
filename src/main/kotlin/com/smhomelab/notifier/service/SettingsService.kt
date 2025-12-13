@@ -36,8 +36,23 @@ class SettingsService(
         botUserFacade.updatePushoverKey(telegramId, null)
     }
 
-    fun sendTestNotification(telegramId: Long): Boolean {
-        val key = getPushoverKey(telegramId) ?: return false
-        return pushoverService.send(key, "Тестовое уведомление от Notifier", "Тест")
+    fun isPushoverEnabled(): Boolean = pushoverService.isEnabled()
+
+    fun sendTestNotification(telegramId: Long): SendResult {
+        if (!pushoverService.isEnabled()) return SendResult.Disabled
+        val key = getPushoverKey(telegramId) ?: return SendResult.Failed
+        return if (pushoverService.send(key, "Тестовое уведомление от Notifier", "Тест")) {
+            SendResult.Sent
+        } else {
+            SendResult.Failed
+        }
+    }
+
+    sealed interface SendResult {
+        data object Sent : SendResult
+
+        data object Failed : SendResult
+
+        data object Disabled : SendResult
     }
 }

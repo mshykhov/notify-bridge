@@ -9,6 +9,7 @@ import com.smhomelab.notifier.bot.secureStep
 import com.smhomelab.notifier.common.ValidationResult
 import com.smhomelab.notifier.service.AuthorizationService
 import com.smhomelab.notifier.service.SettingsService
+import com.smhomelab.notifier.service.SettingsService.SendResult
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.container.GeneralContainer
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
@@ -84,34 +85,28 @@ class SettingsHandler(
                     settingsService.savePushoverKey(from.id, result.value)
                     next(null)
 
-                    val testSent = settingsService.sendTestNotification(from.id)
-                    if (testSent) {
-                        sendMessage(
-                            "✓ Pushover настроен!\n\nТестовое уведомление отправлено. Проверь телефон.",
-                            replyMarkup = inlineKeyboard(
-                                callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
-                            ),
-                        )
-                    } else {
-                        sendMessage(
-                            "✓ Ключ сохранён, но тестовое уведомление не отправлено.\n" +
-                                "Проверь правильность ключа.",
-                            replyMarkup = inlineKeyboard(
-                                callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
-                            ),
-                        )
+                    val message = when (settingsService.sendTestNotification(from.id)) {
+                        SendResult.Sent -> "✓ Pushover настроен!\n\nТестовое уведомление отправлено."
+                        SendResult.Failed -> "✓ Ключ сохранён, но тест не прошёл. Проверь ключ."
+                        SendResult.Disabled -> "✓ Ключ сохранён. Pushover временно недоступен."
                     }
+                    sendMessage(
+                        message,
+                        replyMarkup = inlineKeyboard(
+                            callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
+                        ),
+                    )
                 }
             }
         }
 
         secureCallback(BotCallbacks.PUSHOVER_TEST, auth) {
-            val sent = settingsService.sendTestNotification(from.id)
-            if (sent) {
-                sendMessage("✓ Тестовое уведомление отправлено!")
-            } else {
-                sendMessage("✗ Не удалось отправить уведомление. Проверь настройки.")
+            val message = when (settingsService.sendTestNotification(from.id)) {
+                SendResult.Sent -> "✓ Тестовое уведомление отправлено!"
+                SendResult.Failed -> "✗ Не удалось отправить. Проверь ключ."
+                SendResult.Disabled -> "✗ Pushover временно недоступен."
             }
+            sendMessage(message)
         }
 
         secureCallback(BotCallbacks.PUSHOVER_REMOVE, auth) {

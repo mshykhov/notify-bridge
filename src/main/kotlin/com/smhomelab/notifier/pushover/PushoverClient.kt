@@ -1,7 +1,7 @@
 package com.smhomelab.notifier.pushover
 
 import com.smhomelab.notifier.config.PushoverProperties
-import org.slf4j.LoggerFactory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -9,16 +9,17 @@ import org.springframework.stereotype.Component
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestTemplate
 
+private val logger = KotlinLogging.logger {}
+
 @Component
 class PushoverClient(
     private val properties: PushoverProperties,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
     private val restTemplate = RestTemplate()
 
     fun sendMessage(request: PushoverRequest): PushoverResponse {
         if (!properties.enabled) {
-            log.debug("Pushover is disabled, skipping message")
+            logger.debug { "Pushover is disabled, skipping message" }
             return PushoverResponse(status = 0, request = null)
         }
 
@@ -44,10 +45,10 @@ class PushoverClient(
                 HttpEntity(body, headers),
                 PushoverResponse::class.java,
             )
-            log.debug("Pushover message sent: ${response?.status}")
+            logger.debug { "Pushover message sent: ${response?.status}" }
             response ?: PushoverResponse(status = 0, request = null)
         } catch (e: Exception) {
-            log.error("Failed to send Pushover message: ${e.message}")
+            logger.error { "Failed to send Pushover message: ${e.message}" }
             PushoverResponse(status = 0, request = null, errors = listOf(e.message ?: "Unknown error"))
         }
     }

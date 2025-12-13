@@ -6,8 +6,10 @@ import com.smhomelab.notifier.persistence.facade.BotUserFacade
 import com.smhomelab.notifier.persistence.model.UserRole
 import io.github.dehuckakpyt.telegrambot.TelegramBot
 import io.github.dehuckakpyt.telegrambot.model.telegram.BotCommandScopeChat
-import org.slf4j.LoggerFactory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
+
+private val logger = KotlinLogging.logger {}
 
 @Service
 class BotCommandMenuService(
@@ -15,17 +17,15 @@ class BotCommandMenuService(
     private val botUserFacade: BotUserFacade,
     private val adminProperties: AdminProperties,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     suspend fun updateCommandsForUser(telegramId: Long, role: UserRole) {
         try {
             telegramBot.setMyCommands(
                 commands = BotCommands.forRole(role).map { it.toBotCommand() },
                 scope = BotCommandScopeChat(chatId = telegramId.toString()),
             )
-            log.debug("Updated commands for $telegramId")
+            logger.debug { "Updated commands for $telegramId" }
         } catch (e: Exception) {
-            log.warn("Failed to update commands for $telegramId: ${e.message}")
+            logger.warn { "Failed to update commands for $telegramId: ${e.message}" }
         }
     }
 
@@ -36,7 +36,7 @@ class BotCommandMenuService(
                 scope = BotCommandScopeChat(chatId = telegramId.toString()),
             )
         } catch (e: Exception) {
-            log.debug("Could not reset commands for $telegramId")
+            logger.debug { "Could not reset commands for $telegramId" }
         }
     }
 
@@ -54,6 +54,6 @@ class BotCommandMenuService(
             updateCommandsForUser(user.telegramId, user.role)
         }
 
-        log.info("Bot commands initialized")
+        logger.info { "Bot commands initialized" }
     }
 }
