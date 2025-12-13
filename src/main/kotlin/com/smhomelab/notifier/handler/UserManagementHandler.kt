@@ -28,6 +28,13 @@ class UserManagementHandler(
     private val invitationService: InvitationService,
 ) : BotHandler({
 
+        val enterIdText = "Введи Telegram ID пользователя:"
+        val enterUsernameText = "Введи @username пользователя (без @):"
+
+        val cancelKeyboard = inlineKeyboard(
+            callbackButton("✗ Отмена", BotCallbacks.ADMIN_CANCEL.callback),
+        )
+
         // === LIST_USERS ===
         secureCommand(BotCommands.LIST_USERS, auth) {
             logger.debug { "/list_users by adminId=${from.id}" }
@@ -42,33 +49,55 @@ class UserManagementHandler(
                 replyMarkup = inlineKeyboard(
                     callbackButton("По Telegram ID", BotCallbacks.ADMIN_ADD_BY_ID.callback),
                     callbackButton("По @username", BotCallbacks.ADMIN_ADD_BY_USERNAME.callback),
-                    callbackButton("Отмена", BotCallbacks.ADMIN_CANCEL.callback),
+                    callbackButton("✗ Отмена", BotCallbacks.ADMIN_CANCEL.callback),
                 ),
             )
         }
 
-        secureCallback(BotCallbacks.ADMIN_ADD_BY_ID, auth, next = BotSteps.GET_USER_ID.step) {
-            sendMessage("Введи Telegram ID пользователя:")
+        secureCallback(BotCallbacks.ADMIN_ADD_BY_ID, auth) {
+            editMessageText(
+                messageId = message.messageId,
+                text = enterIdText,
+                replyMarkup = cancelKeyboard,
+            )
+            next(BotSteps.GET_USER_ID.step, message.messageId)
         }
 
-        secureCallback(BotCallbacks.ADMIN_ADD_BY_USERNAME, auth, next = BotSteps.GET_USERNAME.step) {
-            sendMessage("Введи @username пользователя (без @):")
+        secureCallback(BotCallbacks.ADMIN_ADD_BY_USERNAME, auth) {
+            editMessageText(
+                messageId = message.messageId,
+                text = enterUsernameText,
+                replyMarkup = cancelKeyboard,
+            )
+            next(BotSteps.GET_USERNAME.step, message.messageId)
         }
 
         secureCallback(BotCallbacks.ADMIN_CANCEL, auth) {
-            sendMessage("Отменено")
+            next(null)
+            editMessageText(
+                messageId = message.messageId,
+                text = "✗ Отменено",
+            )
         }
 
         secureStep(BotSteps.GET_USER_ID, auth) {
+            val promptMessageId = transferred<Long>()
+            deleteMessage(message.messageId)
+
             when (val result = userManagementService.validateTelegramId(text)) {
                 is ValidationResult.Invalid -> {
-                    sendMessage(result.error)
-                    return@secureStep
+                    editMessageText(
+                        messageId = promptMessageId,
+                        text = "❌ ${result.error}\n\n$enterIdText",
+                        replyMarkup = cancelKeyboard,
+                    )
+                    next(BotSteps.GET_USER_ID.step, promptMessageId)
                 }
                 is ValidationResult.Valid -> {
                     next(null)
-                    sendMessage(
-                        "Выбери роль для пользователя:",
+                    editMessageText(
+                        messageId = promptMessageId,
+                        text = "Выбери роль для пользователя:",
                         replyMarkup = inlineKeyboard(
                             callbackButton("User", next = BotCallbacks.ROLE_USER.callback, content = "id:${result.value}"),
                             callbackButton("Admin", next = BotCallbacks.ROLE_ADMIN.callback, content = "id:${result.value}"),
@@ -79,15 +108,23 @@ class UserManagementHandler(
         }
 
         secureStep(BotSteps.GET_USERNAME, auth) {
+            val promptMessageId = transferred<Long>()
+            deleteMessage(message.messageId)
+
             when (val result = userManagementService.validateUsername(text)) {
                 is ValidationResult.Invalid -> {
-                    sendMessage(result.error)
-                    return@secureStep
+                    editMessageText(
+                        messageId = promptMessageId,
+                        text = "❌ ${result.error}\n\n$enterUsernameText",
+                        replyMarkup = cancelKeyboard,
+                    )
+                    next(BotSteps.GET_USERNAME.step, promptMessageId)
                 }
                 is ValidationResult.Valid -> {
                     next(null)
-                    sendMessage(
-                        "Выбери роль для @${result.value}:",
+                    editMessageText(
+                        messageId = promptMessageId,
+                        text = "Выбери роль для @${result.value}:",
                         replyMarkup = inlineKeyboard(
                             callbackButton("User", next = BotCallbacks.ROLE_USER.callback, content = "username:${result.value}"),
                             callbackButton("Admin", next = BotCallbacks.ROLE_ADMIN.callback, content = "username:${result.value}"),
@@ -100,15 +137,21 @@ class UserManagementHandler(
         secureCallback(BotCallbacks.ROLE_USER, auth) {
             val data = transferred<String>()
             logger.debug { "Adding user with role=USER, data=$data, by adminId=${from.id}" }
-            val message = userManagementService.addUser(data, UserRole.USER, from.id)
-            sendMessage(message)
+            val result = userManagementService.addUser(data, UserRole.USER, from.id)
+            editMessageText(
+                messageId = message.messageId,
+                text = result,
+            )
         }
 
         secureCallback(BotCallbacks.ROLE_ADMIN, auth) {
             val data = transferred<String>()
             logger.debug { "Adding user with role=ADMIN, data=$data, by adminId=${from.id}" }
-            val message = userManagementService.addUser(data, UserRole.ADMIN, from.id)
-            sendMessage(message)
+            val result = userManagementService.addUser(data, UserRole.ADMIN, from.id)
+            editMessageText(
+                messageId = message.messageId,
+                text = result,
+            )
         }
 
         secureCommand(BotCommands.REMOVE_USER, auth) {
@@ -131,7 +174,7 @@ class UserManagementHandler(
                 buttons.add(callbackButton("@${inv.username} (invite)", next = BotCallbacks.REMOVE_INVITE.callback, content = inv.username))
             }
 
-            buttons.add(callbackButton("Отмена", BotCallbacks.ADMIN_CANCEL.callback))
+            buttons.add(callbackButton("✗ Отмена", BotCallbacks.ADMIN_CANCEL.callback))
 
             sendMessage(
                 "Выбери кого удалить:",
@@ -142,18 +185,27 @@ class UserManagementHandler(
         secureCallback(BotCallbacks.REMOVE_USER, auth) {
             val telegramId = transferred<String>().toLongOrNull()
             if (telegramId == null) {
-                sendMessage("Ошибка: неверный ID")
+                editMessageText(
+                    messageId = message.messageId,
+                    text = "❌ Ошибка: неверный ID",
+                )
                 return@secureCallback
             }
             logger.debug { "Removing user telegramId=$telegramId, by adminId=${from.id}" }
-            val message = userManagementService.removeUser(telegramId)
-            sendMessage(message)
+            val result = userManagementService.removeUser(telegramId)
+            editMessageText(
+                messageId = message.messageId,
+                text = result,
+            )
         }
 
         secureCallback(BotCallbacks.REMOVE_INVITE, auth) {
             val username = transferred<String>()
             logger.debug { "Removing invitation username=$username, by adminId=${from.id}" }
-            val message = userManagementService.removeInvitation(username)
-            sendMessage(message)
+            val result = userManagementService.removeInvitation(username)
+            editMessageText(
+                messageId = message.messageId,
+                text = result,
+            )
         }
     })

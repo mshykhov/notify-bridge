@@ -108,30 +108,66 @@ class SettingsHandler(
             }
         }
 
-        // Запрос ключа - отправляем новое (ждём ввод от пользователя)
-        secureCallback(BotCallbacks.PUSHOVER_CONFIGURE, auth, next = BotSteps.GET_PUSHOVER_KEY.step) {
-            sendMessage(
-                "Введи свой Pushover User Key:\n\n" +
-                    "1. Установи приложение Pushover\n" +
-                    "2. Зайди на pushover.net\n" +
-                    "3. Скопируй User Key с главной страницы",
+        val enterKeyText = "Введи свой Pushover User Key:\n\n" +
+            "1. Установи приложение Pushover\n" +
+            "2. Зайди на pushover.net\n" +
+            "3. Скопируй User Key с главной страницы"
+
+        val enterKeyKeyboard = inlineKeyboard(
+            callbackButton("✗ Отмена", BotCallbacks.PUSHOVER_CANCEL.callback),
+        )
+
+        // Запрос ключа - редактируем меню и передаём messageId в step
+        secureCallback(BotCallbacks.PUSHOVER_CONFIGURE, auth) {
+            editMessageText(
+                messageId = message.messageId,
+                text = enterKeyText,
+                replyMarkup = enterKeyKeyboard,
             )
+            next(BotSteps.GET_PUSHOVER_KEY.step, message.messageId)
         }
 
-        // Обработка ввода ключа - отправляем новое (ответ на ввод)
+        // Отмена ввода ключа - возврат в меню
+        secureCallback(BotCallbacks.PUSHOVER_CANCEL, auth) {
+            next(null)
+            val config = settingsService.getPushoverConfig(from.id)
+            if (config == null) {
+                editMessageText(
+                    messageId = message.messageId,
+                    text = pushoverNotConfiguredText,
+                    replyMarkup = pushoverNotConfiguredKeyboard,
+                )
+            } else {
+                editMessageText(
+                    messageId = message.messageId,
+                    text = pushoverMenuText(config.enabled),
+                    replyMarkup = pushoverMenuKeyboard(config.enabled),
+                )
+            }
+        }
+
+        // Обработка ввода ключа - редактируем исходное сообщение
         secureStep(BotSteps.GET_PUSHOVER_KEY, auth) {
+            val promptMessageId = transferred<Long>()
+            deleteMessage(message.messageId)
+
             when (val result = settingsService.validatePushoverKey(text)) {
                 is ValidationResult.Invalid -> {
-                    sendMessage(result.error)
-                    return@secureStep
+                    editMessageText(
+                        messageId = promptMessageId,
+                        text = "❌ ${result.error}\n\n$enterKeyText",
+                        replyMarkup = enterKeyKeyboard,
+                    )
+                    next(BotSteps.GET_PUSHOVER_KEY.step, promptMessageId)
                 }
 
                 is ValidationResult.Valid -> {
                     logger.debug { "Saving Pushover key for telegramId=${from.id}" }
                     settingsService.savePushoverKey(from.id, result.value)
                     next(null)
-                    sendMessage(
-                        "✓ Pushover настроен!\n\nРекомендуем отправить тестовое уведомление.",
+                    editMessageText(
+                        messageId = promptMessageId,
+                        text = "✓ Pushover настроен!\n\nРекомендуем отправить тестовое уведомление.",
                         replyMarkup = inlineKeyboard(
                             callbackButton("🔔 Тест", BotCallbacks.PUSHOVER_TEST_MENU.callback),
                             callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
@@ -210,15 +246,27 @@ class SettingsHandler(
             )
         }
 
-        // Удаление - редактируем
+        // Удаление - подтверждение
         secureCallback(BotCallbacks.PUSHOVER_REMOVE, auth) {
+            editMessageText(
+                messageId = message.messageId,
+                text = "⚠️ Удалить настройки Pushover?\n\nЭто действие нельзя отменить.",
+                replyMarkup = inlineKeyboard(
+                    callbackButton("🗑 Удалить", BotCallbacks.PUSHOVER_REMOVE_CONFIRM.callback),
+                    callbackButton("« Назад", BotCallbacks.SETTINGS_PUSHOVER.callback),
+                ),
+            )
+        }
+
+        // Удаление - подтверждено
+        secureCallback(BotCallbacks.PUSHOVER_REMOVE_CONFIRM, auth) {
             logger.debug { "Removing Pushover config for telegramId=${from.id}" }
             settingsService.removePushoverConfig(from.id)
             editMessageText(
                 messageId = message.messageId,
                 text = "✓ Pushover настройки удалены",
                 replyMarkup = inlineKeyboard(
-                    callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
+                    callbackButton("« К настройкам", BotCallbacks.SETTINGS_BACK.callback),
                 ),
             )
         }
