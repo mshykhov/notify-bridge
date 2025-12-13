@@ -30,6 +30,10 @@ config/        # Spring config
 - `dehuckakpyt/telegram-bot:0.13.4`
 - PostgreSQL + Flyway
 
+## Library Sources
+
+- **telegram-bot lib**: `/mnt/c/Users/Myron/IdeaProjects/telegram-bot` (local clone for reference)
+
 ## Future: View Layer
 
 When 3+ similar menus exist, refactor to View layer:

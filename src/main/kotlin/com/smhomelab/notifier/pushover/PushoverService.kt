@@ -25,13 +25,6 @@ class PushoverService(
 
     fun isEnabled(): Boolean = properties.enabled
 
-    fun send(userKey: String, message: String, title: String? = null): Boolean {
-        val response = client.sendMessage(
-            PushoverRequest(userKey = userKey, message = message, title = title),
-        )
-        return response.status == 1
-    }
-
     fun sendWithPriority(
         userKey: String,
         message: String,
