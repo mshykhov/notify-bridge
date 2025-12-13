@@ -1,4 +1,4 @@
-package com.smhomelab.notifier.model
+package com.smhomelab.notifier.model.pushover
 
 enum class NotificationPriority(
     val value: Int,

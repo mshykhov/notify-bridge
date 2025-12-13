@@ -6,11 +6,11 @@ import com.smhomelab.notifier.bot.BotSteps
 import com.smhomelab.notifier.bot.secureCallback
 import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.bot.secureStep
-import com.smhomelab.notifier.model.NotificationPriority
 import com.smhomelab.notifier.model.common.ValidationResult
+import com.smhomelab.notifier.model.pushover.NotificationPriority
+import com.smhomelab.notifier.model.pushover.SendResult
 import com.smhomelab.notifier.service.AuthorizationService
 import com.smhomelab.notifier.service.SettingsService
-import com.smhomelab.notifier.service.SettingsService.SendResult
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler

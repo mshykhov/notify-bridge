@@ -1,7 +1,8 @@
 package com.smhomelab.notifier.service
 
-import com.smhomelab.notifier.model.NotificationPriority
 import com.smhomelab.notifier.model.common.ValidationResult
+import com.smhomelab.notifier.model.pushover.NotificationPriority
+import com.smhomelab.notifier.model.pushover.SendResult
 import com.smhomelab.notifier.persistence.facade.UserPushoverConfigFacade
 import com.smhomelab.notifier.persistence.model.UserPushoverConfig
 import com.smhomelab.notifier.pushover.PushoverService
@@ -73,13 +74,12 @@ class SettingsService(
             logger.debug { "Test notification skipped: user disabled for telegramId=$telegramId" }
             return SendResult.UserDisabled
         }
-        val pushoverPriority = PushoverService.Priority.entries.find { it.value == priority.value }
-            ?: PushoverService.Priority.NORMAL
-        val success = pushoverService.sendWithPriority(
-            config.userKey,
-            "Тестовое уведомление от Notifier\nПриоритет: ${priority.displayName}",
-            "Тест",
-            pushoverPriority,
+        val success = pushoverService.send(
+            userKey = config.userKey,
+            message = "Тестовое уведомление от Notifier\nПриоритет: ${priority.displayName}",
+            title = "Тест",
+            priority = priority,
+            ttl = TEST_NOTIFICATION_TTL,
         )
         return if (success) {
             logger.debug { "Test notification sent: telegramId=$telegramId, priority=$priority" }
@@ -90,15 +90,7 @@ class SettingsService(
         }
     }
 
-    sealed interface SendResult {
-        data class Sent(
-            val priority: NotificationPriority,
-        ) : SendResult
-
-        data object Failed : SendResult
-
-        data object Disabled : SendResult
-
-        data object UserDisabled : SendResult
+    companion object {
+        private const val TEST_NOTIFICATION_TTL = 60
     }
 }

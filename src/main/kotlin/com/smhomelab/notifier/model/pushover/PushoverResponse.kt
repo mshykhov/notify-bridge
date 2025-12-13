@@ -1,4 +1,4 @@
-package com.smhomelab.notifier.model
+package com.smhomelab.notifier.model.pushover
 
 data class PushoverResponse(
     val status: Int,

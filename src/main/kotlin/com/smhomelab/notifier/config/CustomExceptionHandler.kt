@@ -16,7 +16,6 @@ class CustomExceptionHandler(
     template: MessageTemplate,
     templater: Templater,
 ) : ExceptionHandlerImpl(bot, template, templater) {
-
     override suspend fun caught(chat: Chat, ex: Throwable) {
         if (isMessageNotModified(ex)) {
             logger.debug { "Message not modified (content unchanged), ignoring" }

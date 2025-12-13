@@ -1,8 +1,8 @@
 package com.smhomelab.notifier.pushover
 
 import com.smhomelab.notifier.config.PushoverProperties
-import com.smhomelab.notifier.model.PushoverRequest
-import com.smhomelab.notifier.model.PushoverResponse
+import com.smhomelab.notifier.model.pushover.PushoverRequest
+import com.smhomelab.notifier.model.pushover.PushoverResponse
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -35,12 +35,20 @@ class PushoverClient(
             add("token", properties.apiToken)
             add("user", request.userKey)
             add("message", request.message)
+            add("priority", request.priority.value.toString())
             request.title?.let { add("title", it) }
-            request.priority?.let { add("priority", it.toString()) }
-            request.sound?.let { add("sound", it) }
+            request.sound?.let { add("sound", it.apiValue) }
             request.url?.let { add("url", it) }
             request.urlTitle?.let { add("url_title", it) }
+            request.device?.let { add("device", it) }
+            request.timestamp?.let { add("timestamp", it.toString()) }
+            request.ttl?.let { add("ttl", it.toString()) }
+            request.retry?.let { add("retry", it.toString()) }
+            request.expire?.let { add("expire", it.toString()) }
+            request.callback?.let { add("callback", it) }
+            request.tags?.let { add("tags", it) }
             if (request.html) add("html", "1")
+            if (request.monospace) add("monospace", "1")
         }
 
         return try {

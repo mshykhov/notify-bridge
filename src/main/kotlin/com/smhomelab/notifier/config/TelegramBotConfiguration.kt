@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @EnableTelegramBot
 class TelegramBotConfiguration {
-
     @Bean
     fun telegramBotConfig(): TelegramBotConfig = TelegramBotConfig().apply {
         receiving {

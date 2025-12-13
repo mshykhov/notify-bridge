@@ -1,7 +1,9 @@
 package com.smhomelab.notifier.pushover
 
 import com.smhomelab.notifier.config.PushoverProperties
-import com.smhomelab.notifier.model.PushoverRequest
+import com.smhomelab.notifier.model.pushover.NotificationPriority
+import com.smhomelab.notifier.model.pushover.PushoverRequest
+import com.smhomelab.notifier.model.pushover.PushoverSound
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
@@ -25,25 +27,35 @@ class PushoverService(
 
     fun isEnabled(): Boolean = properties.enabled
 
-    fun sendWithPriority(
+    fun send(
         userKey: String,
         message: String,
         title: String? = null,
-        priority: Priority = Priority.NORMAL,
+        priority: NotificationPriority = NotificationPriority.NORMAL,
+        sound: PushoverSound? = null,
+        url: String? = null,
+        urlTitle: String? = null,
+        html: Boolean = false,
+        ttl: Int? = null,
     ): Boolean {
-        val response = client.sendMessage(
-            PushoverRequest(userKey = userKey, message = message, title = title, priority = priority.value),
+        val request = PushoverRequest(
+            userKey = userKey,
+            message = message,
+            title = title,
+            priority = priority,
+            sound = sound,
+            url = url,
+            urlTitle = urlTitle,
+            html = html,
+            ttl = ttl,
+            retry = if (priority == NotificationPriority.EMERGENCY) DEFAULT_EMERGENCY_RETRY else null,
+            expire = if (priority == NotificationPriority.EMERGENCY) DEFAULT_EMERGENCY_EXPIRE else null,
         )
-        return response.status == 1
+        return client.sendMessage(request).status == 1
     }
 
-    enum class Priority(
-        val value: Int,
-    ) {
-        LOWEST(-2),
-        LOW(-1),
-        NORMAL(0),
-        HIGH(1),
-        EMERGENCY(2),
+    companion object {
+        const val DEFAULT_EMERGENCY_RETRY = 60
+        const val DEFAULT_EMERGENCY_EXPIRE = 300
     }
 }
