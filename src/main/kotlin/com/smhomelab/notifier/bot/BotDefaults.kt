@@ -1,6 +1,6 @@
 package com.smhomelab.notifier.bot
 
-import io.github.dehuckakpyt.telegrambot.model.type.LinkPreviewOptions
+import io.github.dehuckakpyt.telegrambot.model.telegram.LinkPreviewOptions
 
 object ParseMode {
     const val HTML = "HTML"
