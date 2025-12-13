@@ -42,9 +42,6 @@ class UserPushoverConfigFacade(
     fun updateEnabled(telegramId: Long, enabled: Boolean): UserPushoverConfig? =
         update(telegramId) { this.enabled = enabled }
 
-    fun updateDefaultPriority(telegramId: Long, priority: Int): UserPushoverConfig? =
-        update(telegramId) { this.defaultPriority = priority }
-
     fun updateSound(telegramId: Long, sound: String?): UserPushoverConfig? =
         update(telegramId) { this.sound = sound }
 

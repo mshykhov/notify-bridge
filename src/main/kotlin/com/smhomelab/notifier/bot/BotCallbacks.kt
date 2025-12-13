@@ -9,7 +9,13 @@ enum class BotCallbacks(
     // User - Settings
     SETTINGS_PUSHOVER("settings:pushover"),
     PUSHOVER_CONFIGURE("pushover:configure"),
-    PUSHOVER_TEST("pushover:test"),
+    PUSHOVER_TOGGLE("pushover:toggle"),
+    PUSHOVER_TEST_MENU("pushover:test:menu"),
+    PUSHOVER_TEST_LOWEST("pushover:test:lowest"),
+    PUSHOVER_TEST_LOW("pushover:test:low"),
+    PUSHOVER_TEST_NORMAL("pushover:test:normal"),
+    PUSHOVER_TEST_HIGH("pushover:test:high"),
+    PUSHOVER_TEST_EMERGENCY("pushover:test:emergency"),
     PUSHOVER_REMOVE("pushover:remove"),
     SETTINGS_BACK("settings:back"),
 

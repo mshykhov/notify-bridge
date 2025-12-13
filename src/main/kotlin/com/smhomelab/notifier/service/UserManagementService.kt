@@ -1,6 +1,6 @@
 package com.smhomelab.notifier.service
 
-import com.smhomelab.notifier.common.ValidationResult
+import com.smhomelab.notifier.model.common.ValidationResult
 import com.smhomelab.notifier.persistence.model.UserRole
 import org.springframework.stereotype.Service
 

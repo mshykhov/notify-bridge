@@ -22,8 +22,6 @@ class UserPushoverConfig(
     var userKey: String,
     @Column(nullable = false)
     var enabled: Boolean = true,
-    @Column(name = "default_priority", nullable = false)
-    var defaultPriority: Int = 0,
     @Column(length = 50)
     var sound: String? = null,
     @CreationTimestamp

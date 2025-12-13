@@ -1,4 +1,4 @@
-package com.smhomelab.notifier.common
+package com.smhomelab.notifier.model.common
 
 sealed class ValidationResult<out T> {
     data class Valid<T>(

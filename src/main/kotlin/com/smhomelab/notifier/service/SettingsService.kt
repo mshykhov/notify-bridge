@@ -1,6 +1,7 @@
 package com.smhomelab.notifier.service
 
-import com.smhomelab.notifier.common.ValidationResult
+import com.smhomelab.notifier.model.NotificationPriority
+import com.smhomelab.notifier.model.common.ValidationResult
 import com.smhomelab.notifier.persistence.facade.UserPushoverConfigFacade
 import com.smhomelab.notifier.persistence.model.UserPushoverConfig
 import com.smhomelab.notifier.pushover.PushoverService
@@ -47,17 +48,20 @@ class SettingsService(
 
     fun isServerPushoverEnabled(): Boolean = pushoverService.isEnabled()
 
-    fun sendTestNotification(telegramId: Long, priority: Int? = null): SendResult {
+    fun sendTestNotification(
+        telegramId: Long,
+        priority: NotificationPriority = NotificationPriority.NORMAL,
+    ): SendResult {
         if (!pushoverService.isEnabled()) return SendResult.Disabled
         val config = getPushoverConfig(telegramId) ?: return SendResult.Failed
         if (!config.enabled) return SendResult.UserDisabled
-        val actualPriority = priority ?: config.defaultPriority
+        val pushoverPriority = PushoverService.Priority.entries.find { it.value == priority.value }
+            ?: PushoverService.Priority.NORMAL
         return if (pushoverService.sendWithPriority(
                 config.userKey,
                 "Тестовое уведомление от Notifier",
                 "Тест",
-                PushoverService.Priority.entries.find { it.value == actualPriority }
-                    ?: PushoverService.Priority.NORMAL,
+                pushoverPriority,
             )
         ) {
             SendResult.Sent
