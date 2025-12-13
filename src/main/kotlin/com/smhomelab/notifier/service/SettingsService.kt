@@ -74,15 +74,17 @@ class SettingsService(
             logger.debug { "Test notification skipped: user disabled for telegramId=$telegramId" }
             return SendResult.UserDisabled
         }
+        val sound = pushoverService.getDefaultSoundForPriority(priority)
+        val soundName = sound?.displayName ?: "По умолчанию"
         val success = pushoverService.send(
             userKey = config.userKey,
-            message = "Тестовое уведомление от Notifier\nПриоритет: ${priority.displayName}",
+            message = "Тестовое уведомление от Notifier\nПриоритет: ${priority.displayName}\nЗвук: $soundName",
             title = "Тест",
             priority = priority,
             ttl = TEST_NOTIFICATION_TTL,
         )
         return if (success) {
-            logger.debug { "Test notification sent: telegramId=$telegramId, priority=$priority" }
+            logger.debug { "Test notification sent: telegramId=$telegramId, priority=${priority.displayName}, sound=$soundName" }
             SendResult.Sent(priority)
         } else {
             logger.warn { "Test notification failed: telegramId=$telegramId" }

@@ -38,12 +38,13 @@ class PushoverService(
         html: Boolean = false,
         ttl: Int? = null,
     ): Boolean {
+        val effectiveSound = sound ?: getDefaultSoundForPriority(priority)
         val request = PushoverRequest(
             userKey = userKey,
             message = message,
             title = title,
             priority = priority,
-            sound = sound,
+            sound = effectiveSound,
             url = url,
             urlTitle = urlTitle,
             html = html,
@@ -54,8 +55,14 @@ class PushoverService(
         return client.sendMessage(request).status == 1
     }
 
+    fun getDefaultSoundForPriority(priority: NotificationPriority): PushoverSound? =
+        when (priority) {
+            NotificationPriority.EMERGENCY -> PushoverSound.SIREN
+            else -> null
+        }
+
     companion object {
-        const val DEFAULT_EMERGENCY_RETRY = 60
+        const val DEFAULT_EMERGENCY_RETRY = 30
         const val DEFAULT_EMERGENCY_EXPIRE = 300
     }
 }

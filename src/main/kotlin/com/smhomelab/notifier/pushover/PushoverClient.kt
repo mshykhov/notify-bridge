@@ -25,7 +25,19 @@ class PushoverClient(
             return PushoverResponse(status = 0, request = null)
         }
 
-        logger.debug { "Sending Pushover: userKey=${request.userKey.take(4)}..., priority=${request.priority}" }
+        logger.debug {
+            buildString {
+                appendLine("Sending Pushover notification:")
+                appendLine("  user:     ${request.userKey.take(4)}...")
+                appendLine("  title:    ${request.title ?: "-"}")
+                appendLine("  priority: ${request.priority.displayName} (${request.priority.value})")
+                appendLine("  sound:    ${request.sound?.displayName ?: "default"}")
+                request.ttl?.let { appendLine("  ttl:      ${it}s") }
+                request.retry?.let { appendLine("  retry:    ${it}s") }
+                request.expire?.let { appendLine("  expire:   ${it}s") }
+                append("  message:  ${request.message}")
+            }
+        }
 
         val headers = HttpHeaders().apply {
             contentType = MediaType.APPLICATION_FORM_URLENCODED
