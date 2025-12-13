@@ -44,30 +44,26 @@ class HealthchecksPingService(
         }
     }
 
-    private fun checkDatabase(): HealthCheck {
-        return try {
-            dataSource.connection.use { conn ->
-                conn.createStatement().use { stmt ->
-                    stmt.executeQuery("SELECT 1").use { }
-                }
+    private fun checkDatabase(): HealthCheck = try {
+        dataSource.connection.use { conn ->
+            conn.createStatement().use { stmt ->
+                stmt.executeQuery("SELECT 1").use { }
             }
-            HealthCheck("database", true)
-        } catch (e: Exception) {
-            HealthCheck("database", false, e.message)
         }
+        HealthCheck("database", true)
+    } catch (e: Exception) {
+        HealthCheck("database", false, e.message)
     }
 
-    private fun checkPushoverApi(): HealthCheck {
-        return try {
-            val limits = pushoverClient.fetchLimits()
-            if (limits != null) {
-                HealthCheck("pushover", true)
-            } else {
-                HealthCheck("pushover", false, "API unreachable")
-            }
-        } catch (e: Exception) {
-            HealthCheck("pushover", false, e.message)
+    private fun checkPushoverApi(): HealthCheck = try {
+        val limits = pushoverClient.fetchLimits()
+        if (limits != null) {
+            HealthCheck("pushover", true)
+        } else {
+            HealthCheck("pushover", false, "API unreachable")
         }
+    } catch (e: Exception) {
+        HealthCheck("pushover", false, e.message)
     }
 
     private fun sendPing() {

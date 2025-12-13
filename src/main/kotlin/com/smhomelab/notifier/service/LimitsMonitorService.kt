@@ -10,6 +10,7 @@ import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.ZoneId
@@ -34,6 +35,13 @@ class LimitsMonitorService(
     fun init() {
         pushoverService.setLimitsMonitor { checkAndNotifyIfNeeded() }
         logger.debug { "LimitsMonitorService registered with PushoverService" }
+    }
+
+    @Scheduled(fixedRate = 600_000, initialDelay = 60_000)
+    fun scheduledCheck() {
+        if (!pushoverService.isEnabled()) return
+        logger.debug { "Scheduled limits check" }
+        checkAndNotifyIfNeeded()
     }
 
     fun getLimits(): PushoverLimits? = fetchAndCache()
