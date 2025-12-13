@@ -42,8 +42,8 @@ class SettingsHandler(
         }
 
         fun pushoverMenuText(enabled: Boolean): String {
-            val statusIcon = if (enabled) "✓" else "⏸"
-            return "📱 Pushover: $statusIcon Настроен\n\nPushover позволяет получать уведомления на телефон."
+            val status = if (enabled) "✓ Настроен" else "⏸ Настроен (пауза)"
+            return "📱 Pushover: $status\n\nPushover позволяет получать уведомления на телефон."
         }
 
         fun pushoverMenuKeyboard(enabled: Boolean) = inlineKeyboard(
