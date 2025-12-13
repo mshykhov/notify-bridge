@@ -4,6 +4,7 @@ import com.smhomelab.notifier.bot.BotCommands
 import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.service.AuthorizationService
 import com.smhomelab.notifier.service.InvitationService
+import com.smhomelab.notifier.service.SettingsService
 import com.smhomelab.notifier.service.UserService
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler
@@ -13,6 +14,7 @@ class StartHandler(
     private val auth: AuthorizationService,
     private val userService: UserService,
     private val invitationService: InvitationService,
+    private val settingsService: SettingsService,
 ) : BotHandler({
 
         command(BotCommands.START.slashCommand) {
@@ -21,7 +23,12 @@ class StartHandler(
 
             if (userService.existsByTelegramId(telegramId)) {
                 userService.cleanupOrphanedInvitation(username)
-                sendMessage("Используй ${BotCommands.HELP.slashCommand} для списка команд.")
+                val pushoverHint = if (!settingsService.isPushoverConfigured(telegramId)) {
+                    "\n\n💡 Настрой Pushover для получения уведомлений: ${BotCommands.SETTINGS.slashCommand}"
+                } else {
+                    ""
+                }
+                sendMessage("Используй ${BotCommands.HELP.slashCommand} для списка команд.$pushoverHint")
                 return@command
             }
 
@@ -29,7 +36,11 @@ class StartHandler(
                 val invitation = invitationService.findByUsername(username)
                 if (invitation != null) {
                     userService.activateFromInvitation(invitation, telegramId, from.firstName, from.lastName)
-                    sendMessage("Твой аккаунт активирован. Используй ${BotCommands.HELP.slashCommand} для списка команд.")
+                    sendMessage(
+                        "Твой аккаунт активирован.\n\n" +
+                            "💡 Настрой Pushover для получения уведомлений: ${BotCommands.SETTINGS.slashCommand}\n\n" +
+                            "Используй ${BotCommands.HELP.slashCommand} для списка команд.",
+                    )
                     return@command
                 }
             }
