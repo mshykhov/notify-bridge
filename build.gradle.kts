@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.smhomelab"
-version = "0.0.1-SNAPSHOT"
+version = System.getenv("APP_VERSION") ?: "0.0.1-SNAPSHOT"
 description = "Notification service with Telegram and Pushover"
 
 java {
