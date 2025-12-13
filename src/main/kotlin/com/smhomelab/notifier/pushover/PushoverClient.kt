@@ -28,7 +28,7 @@ class PushoverClient(
 
         val body = LinkedMultiValueMap<String, String>().apply {
             add("token", properties.apiToken)
-            add("user", request.userKey ?: properties.userKey)
+            add("user", request.userKey)
             add("message", request.message)
             request.title?.let { add("title", it) }
             request.priority?.let { add("priority", it.toString()) }
@@ -58,9 +58,9 @@ class PushoverClient(
 }
 
 data class PushoverRequest(
+    val userKey: String,
     val message: String,
     val title: String? = null,
-    val userKey: String? = null,
     val priority: Int? = null,
     val sound: String? = null,
     val url: String? = null,

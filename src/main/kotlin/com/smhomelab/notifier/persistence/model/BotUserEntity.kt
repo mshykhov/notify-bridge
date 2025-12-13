@@ -28,6 +28,9 @@ class BotUserEntity(
     @Column(length = 16, nullable = false)
     var role: UserRole = UserRole.USER,
 
+    @Column(name = "pushover_user_key", length = 30)
+    var pushoverUserKey: String? = null,
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: Instant? = null,

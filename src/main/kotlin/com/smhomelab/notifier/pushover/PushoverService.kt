@@ -1,7 +1,6 @@
 package com.smhomelab.notifier.pushover
 
 import com.smhomelab.notifier.config.PushoverProperties
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
@@ -9,27 +8,23 @@ class PushoverService(
     private val client: PushoverClient,
     private val properties: PushoverProperties
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     fun isEnabled(): Boolean = properties.enabled
 
-    fun send(message: String, title: String? = null): Boolean {
+    fun send(userKey: String, message: String, title: String? = null): Boolean {
         val response = client.sendMessage(
-            PushoverRequest(message = message, title = title)
+            PushoverRequest(userKey = userKey, message = message, title = title)
         )
         return response.status == 1
     }
 
-    fun sendWithPriority(message: String, title: String? = null, priority: Priority = Priority.NORMAL): Boolean {
+    fun sendWithPriority(
+        userKey: String,
+        message: String,
+        title: String? = null,
+        priority: Priority = Priority.NORMAL
+    ): Boolean {
         val response = client.sendMessage(
-            PushoverRequest(message = message, title = title, priority = priority.value)
-        )
-        return response.status == 1
-    }
-
-    fun sendWithUrl(message: String, title: String? = null, url: String, urlTitle: String? = null): Boolean {
-        val response = client.sendMessage(
-            PushoverRequest(message = message, title = title, url = url, urlTitle = urlTitle)
+            PushoverRequest(userKey = userKey, message = message, title = title, priority = priority.value)
         )
         return response.status == 1
     }
