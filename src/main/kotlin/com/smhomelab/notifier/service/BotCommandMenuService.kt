@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 class BotCommandMenuService(
     private val telegramBot: TelegramBot,
     private val botUserFacade: BotUserFacade,
-    private val adminProperties: AdminProperties
+    private val adminProperties: AdminProperties,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -21,7 +21,7 @@ class BotCommandMenuService(
         try {
             telegramBot.setMyCommands(
                 commands = BotCommands.forRole(role).map { it.toBotCommand() },
-                scope = BotCommandScopeChat(chatId = telegramId.toString())
+                scope = BotCommandScopeChat(chatId = telegramId.toString()),
             )
             log.debug("Updated commands for $telegramId")
         } catch (e: Exception) {
@@ -33,7 +33,7 @@ class BotCommandMenuService(
         try {
             telegramBot.setMyCommands(
                 commands = BotCommands.forRole(null).map { it.toBotCommand() },
-                scope = BotCommandScopeChat(chatId = telegramId.toString())
+                scope = BotCommandScopeChat(chatId = telegramId.toString()),
             )
         } catch (e: Exception) {
             log.debug("Could not reset commands for $telegramId")
@@ -42,12 +42,12 @@ class BotCommandMenuService(
 
     suspend fun initializeAllCommands() {
         telegramBot.setMyCommands(
-            commands = BotCommands.forRole(null).map { it.toBotCommand() }
+            commands = BotCommands.forRole(null).map { it.toBotCommand() },
         )
 
         telegramBot.setMyCommands(
             commands = BotCommands.all(),
-            scope = BotCommandScopeChat(chatId = adminProperties.masterAdminId.toString())
+            scope = BotCommandScopeChat(chatId = adminProperties.masterAdminId.toString()),
         )
 
         botUserFacade.findAll().forEach { user ->

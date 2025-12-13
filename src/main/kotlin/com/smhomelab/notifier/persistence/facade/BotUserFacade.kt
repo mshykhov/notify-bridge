@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 @Transactional
 class BotUserFacade(
-    private val botUserRepository: BotUserRepository
+    private val botUserRepository: BotUserRepository,
 ) {
     fun findByTelegramId(telegramId: Long): BotUserEntity? =
         botUserRepository.findByTelegramId(telegramId)
@@ -28,15 +28,15 @@ class BotUserFacade(
         role: UserRole,
         username: String? = null,
         firstName: String? = null,
-        lastName: String? = null
+        lastName: String? = null,
     ): BotUserEntity = botUserRepository.save(
         BotUserEntity(
             telegramId = telegramId,
             role = role,
             username = username,
             firstName = firstName,
-            lastName = lastName
-        )
+            lastName = lastName,
+        ),
     )
 
     fun delete(telegramId: Long) {
@@ -59,6 +59,12 @@ class BotUserFacade(
         user.username = username
         user.firstName = firstName
         user.lastName = lastName
+        botUserRepository.save(user)
+    }
+
+    fun updatePushoverKey(telegramId: Long, pushoverUserKey: String?) {
+        val user = botUserRepository.findByTelegramId(telegramId) ?: return
+        user.pushoverUserKey = pushoverUserKey
         botUserRepository.save(user)
     }
 }

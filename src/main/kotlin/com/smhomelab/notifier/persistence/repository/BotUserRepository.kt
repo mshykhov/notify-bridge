@@ -9,8 +9,11 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 interface BotUserRepository : JpaRepository<BotUserEntity, Long> {
     fun findByTelegramId(telegramId: Long): BotUserEntity?
+
     fun findByUsernameIgnoreCase(username: String): BotUserEntity?
+
     fun existsByTelegramId(telegramId: Long): Boolean
+
     fun existsByUsernameIgnoreCase(username: String): Boolean
 
     @Modifying

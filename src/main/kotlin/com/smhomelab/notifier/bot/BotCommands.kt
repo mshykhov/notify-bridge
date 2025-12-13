@@ -6,7 +6,7 @@ import io.github.dehuckakpyt.telegrambot.model.telegram.BotCommand
 enum class BotCommands(
     val command: String,
     val description: String,
-    val requiredRole: UserRole? = null
+    val requiredRole: UserRole? = null,
 ) {
     // Public
     START("start", "Начать работу"),
@@ -18,7 +18,8 @@ enum class BotCommands(
     // Admin
     LIST_USERS("list_users", "Список пользователей", UserRole.ADMIN),
     ADD_USER("add_user", "Добавить пользователя", UserRole.ADMIN),
-    REMOVE_USER("remove_user", "Удалить пользователя", UserRole.ADMIN);
+    REMOVE_USER("remove_user", "Удалить пользователя", UserRole.ADMIN),
+    ;
 
     val slashCommand: String get() = "/$command"
 

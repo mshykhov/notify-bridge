@@ -29,3 +29,33 @@ config/        # Spring config
 - Kotlin + Spring Boot
 - `dehuckakpyt/telegram-bot:0.13.4`
 - PostgreSQL + Flyway
+
+## Future: View Layer
+
+When 3+ similar menus exist, refactor to View layer:
+
+```
+handler/           # only sends messages
+view/              # builds UI (text + buttons)
+service/           # business logic
+```
+
+```kotlin
+// view/ViewData.kt
+data class ButtonData(val text: String, val callback: String)
+data class MessageView(val text: String, val buttons: List<List<ButtonData>>)
+
+// view/SettingsView.kt
+@Component
+class SettingsView(private val settingsService: SettingsService) {
+    fun mainMenu(telegramId: Long): MessageView { ... }
+    fun pushoverMenu(telegramId: Long): MessageView { ... }
+}
+
+// handler - thin, only sends
+secureCommand(BotCommands.SETTINGS, auth) {
+    sendView(settingsView.mainMenu(from.id))
+}
+```
+
+Benefits: testable views, thin handlers, reusable UI components.

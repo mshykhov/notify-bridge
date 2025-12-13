@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class InvitationService(
-    private val invitationFacade: InvitationFacade
+    private val invitationFacade: InvitationFacade,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 

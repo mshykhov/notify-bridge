@@ -1,0 +1,32 @@
+# Generated common part start
+root = true
+
+[*.{kt,kts}]
+ktlint_standard_discouraged-comment-location = disabled
+ij_kotlin_allow_trailing_comma_on_call_site = true
+ij_kotlin_allow_trailing_comma = true
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 160
+ktlint_standard_multiline-if-else = disabled
+ktlint_standard_if-else-wrapping = disabled
+ktlint_standard_if-else-bracing = disabled
+ktlint_standard_argument-list-wrapping = disabled
+ktlint_standard_no-consecutive-blank-lines = enabled
+ktlint_standard_function-signature = disabled
+ktlint_standard_string-template-indent = disabled
+ktlint_standard_multiline-expression-wrapping = disabled
+ktlint_standard_chain-wrapping = enabled
+ktlint_standard_filename = disabled
+
+[build.gradle.kts]
+ktlint = disabled
+
+[build/generated/**]
+ktlint = disabled
+
+[build/**]
+ktlint = disabled
+# This makes us able to leave comment in the end of the line with code
+ktlint_standard_discouraged-comment-location = disabled
+# Generated common part end

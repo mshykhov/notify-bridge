@@ -6,67 +6,121 @@ import com.smhomelab.notifier.bot.BotSteps
 import com.smhomelab.notifier.bot.secureCallback
 import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.bot.secureStep
+import com.smhomelab.notifier.common.ValidationResult
 import com.smhomelab.notifier.service.AuthorizationService
+import com.smhomelab.notifier.service.SettingsService
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
+import io.github.dehuckakpyt.telegrambot.container.GeneralContainer
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler
 
 @HandlerComponent
 class SettingsHandler(
     private val auth: AuthorizationService,
+    private val settingsService: SettingsService,
 ) : BotHandler({
 
-    secureCommand(BotCommands.SETTINGS, auth) {
-        sendMessage(
-            "Выбери что настроить:",
-            replyMarkup = inlineKeyboard(
-                callbackButton("Уведомления", BotCallbacks.SETTINGS_NOTIFICATIONS.callback),
-                callbackButton("Время тишины", BotCallbacks.SETTINGS_QUIET_HOURS.callback),
-                callbackButton("Отмена", BotCallbacks.SETTINGS_CANCEL.callback)
+        suspend fun GeneralContainer.showMainSettings() {
+            val configured = settingsService.isPushoverConfigured(from.id)
+            val status = if (configured) "✓ Настроен" else "⚠️ Не настроен"
+
+            sendMessage(
+                "⚙️ Настройки\n\n📱 Pushover: $status",
+                replyMarkup = inlineKeyboard(
+                    callbackButton("📱 Pushover", BotCallbacks.SETTINGS_PUSHOVER.callback),
+                ),
             )
-        )
-    }
+        }
 
-    secureCallback(BotCallbacks.SETTINGS_NOTIFICATIONS, auth) {
-        sendMessage(
-            "Какие уведомления включить?",
-            replyMarkup = inlineKeyboard(
-                callbackButton("Все", BotCallbacks.NOTIFY_ALL.callback),
-                callbackButton("Только важные", BotCallbacks.NOTIFY_IMPORTANT.callback),
-                callbackButton("Выключить", BotCallbacks.NOTIFY_OFF.callback)
+        secureCommand(BotCommands.SETTINGS, auth) {
+            showMainSettings()
+        }
+
+        secureCallback(BotCallbacks.SETTINGS_BACK, auth) {
+            showMainSettings()
+        }
+
+        secureCallback(BotCallbacks.SETTINGS_PUSHOVER, auth) {
+            val configured = settingsService.isPushoverConfigured(from.id)
+
+            val buttons = if (configured) {
+                arrayOf(
+                    callbackButton("🔔 Тест", BotCallbacks.PUSHOVER_TEST.callback),
+                    callbackButton("✏️ Изменить", BotCallbacks.PUSHOVER_CONFIGURE.callback),
+                    callbackButton("🗑 Удалить", BotCallbacks.PUSHOVER_REMOVE.callback),
+                    callbackButton("« Назад", BotCallbacks.SETTINGS_BACK.callback),
+                )
+            } else {
+                arrayOf(
+                    callbackButton("⚙️ Настроить", BotCallbacks.PUSHOVER_CONFIGURE.callback),
+                    callbackButton("« Назад", BotCallbacks.SETTINGS_BACK.callback),
+                )
+            }
+
+            val status = if (configured) "✓ Настроен" else "⚠️ Не настроен"
+            sendMessage(
+                "📱 Pushover: $status\n\nPushover позволяет получать уведомления на телефон.",
+                replyMarkup = inlineKeyboard(*buttons),
             )
-        )
-    }
+        }
 
-    secureCallback(BotCallbacks.NOTIFY_ALL, auth) {
-        sendMessage("Все уведомления включены")
-    }
+        secureCallback(BotCallbacks.PUSHOVER_CONFIGURE, auth, next = BotSteps.GET_PUSHOVER_KEY.step) {
+            sendMessage(
+                "Введи свой Pushover User Key:\n\n" +
+                    "1. Установи приложение Pushover\n" +
+                    "2. Зайди на pushover.net\n" +
+                    "3. Скопируй User Key с главной страницы",
+            )
+        }
 
-    secureCallback(BotCallbacks.NOTIFY_IMPORTANT, auth) {
-        sendMessage("Только важные уведомления включены")
-    }
+        secureStep(BotSteps.GET_PUSHOVER_KEY, auth) {
+            when (val result = settingsService.validatePushoverKey(text)) {
+                is ValidationResult.Invalid -> {
+                    sendMessage(result.error)
+                    return@secureStep
+                }
 
-    secureCallback(BotCallbacks.NOTIFY_OFF, auth) {
-        sendMessage("Уведомления выключены")
-    }
+                is ValidationResult.Valid -> {
+                    settingsService.savePushoverKey(from.id, result.value)
+                    next(null)
 
-    secureCallback(BotCallbacks.SETTINGS_QUIET_HOURS, auth, next = BotSteps.GET_QUIET_START.step) {
-        sendMessage("Введи время начала тишины (например: 22:00):")
-    }
+                    val testSent = settingsService.sendTestNotification(from.id)
+                    if (testSent) {
+                        sendMessage(
+                            "✓ Pushover настроен!\n\nТестовое уведомление отправлено. Проверь телефон.",
+                            replyMarkup = inlineKeyboard(
+                                callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
+                            ),
+                        )
+                    } else {
+                        sendMessage(
+                            "✓ Ключ сохранён, но тестовое уведомление не отправлено.\n" +
+                                "Проверь правильность ключа.",
+                            replyMarkup = inlineKeyboard(
+                                callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
+                            ),
+                        )
+                    }
+                }
+            }
+        }
 
-    secureStep(BotSteps.GET_QUIET_START, auth, next = BotSteps.GET_QUIET_END.step) {
-        val startTime = text
-        sendMessage("Время начала: $startTime\nТеперь введи время окончания (например: 08:00):")
-        transfer(startTime)
-    }
+        secureCallback(BotCallbacks.PUSHOVER_TEST, auth) {
+            val sent = settingsService.sendTestNotification(from.id)
+            if (sent) {
+                sendMessage("✓ Тестовое уведомление отправлено!")
+            } else {
+                sendMessage("✗ Не удалось отправить уведомление. Проверь настройки.")
+            }
+        }
 
-    secureStep(BotSteps.GET_QUIET_END, auth) {
-        val startTime = transferred<String>()
-        val endTime = text
-        sendMessage("Время тишины установлено: $startTime - $endTime")
-    }
-
-    secureCallback(BotCallbacks.SETTINGS_CANCEL, auth) {
-        sendMessage("Настройки закрыты")
-    }
-})
+        secureCallback(BotCallbacks.PUSHOVER_REMOVE, auth) {
+            settingsService.removePushoverKey(from.id)
+            sendMessage(
+                "✓ Pushover отключён",
+                replyMarkup = inlineKeyboard(
+                    callbackButton("« К настройкам", BotCallbacks.SETTINGS_PUSHOVER.callback),
+                ),
+            )
+        }
+    })

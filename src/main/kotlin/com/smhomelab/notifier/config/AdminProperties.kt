@@ -4,5 +4,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "notifier.admin")
 data class AdminProperties(
-    val masterAdminId: Long
+    val masterAdminId: Long,
 )

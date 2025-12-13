@@ -11,7 +11,7 @@ import org.springframework.web.client.RestTemplate
 
 @Component
 class PushoverClient(
-    private val properties: PushoverProperties
+    private val properties: PushoverProperties,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val restTemplate = RestTemplate()
@@ -42,7 +42,7 @@ class PushoverClient(
             val response = restTemplate.postForObject(
                 API_URL,
                 HttpEntity(body, headers),
-                PushoverResponse::class.java
+                PushoverResponse::class.java,
             )
             log.debug("Pushover message sent: ${response?.status}")
             response ?: PushoverResponse(status = 0, request = null)
@@ -65,11 +65,11 @@ data class PushoverRequest(
     val sound: String? = null,
     val url: String? = null,
     val urlTitle: String? = null,
-    val html: Boolean = false
+    val html: Boolean = false,
 )
 
 data class PushoverResponse(
     val status: Int,
     val request: String?,
-    val errors: List<String>? = null
+    val errors: List<String>? = null,
 )

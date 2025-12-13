@@ -15,7 +15,7 @@ class UserService(
     private val invitationService: InvitationService,
     private val botCommandMenuService: BotCommandMenuService,
     private val adminProperties: AdminProperties,
-    private val telegramBot: TelegramBot
+    private val telegramBot: TelegramBot,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -41,7 +41,7 @@ class UserService(
         role: UserRole,
         username: String? = null,
         firstName: String? = null,
-        lastName: String? = null
+        lastName: String? = null,
     ): BotUserEntity {
         val user = botUserFacade.create(telegramId, role, username, firstName, lastName)
         botCommandMenuService.updateCommandsForUser(user.telegramId, user.role)
@@ -54,14 +54,14 @@ class UserService(
         invitation: BotUserInvitation,
         telegramId: Long,
         firstName: String?,
-        lastName: String?
+        lastName: String?,
     ): BotUserEntity {
         val user = botUserFacade.create(
             telegramId = telegramId,
             role = invitation.role,
             username = invitation.username,
             firstName = firstName,
-            lastName = lastName
+            lastName = lastName,
         )
         invitationService.delete(invitation.username)
         botCommandMenuService.updateCommandsForUser(user.telegramId, user.role)
@@ -95,7 +95,7 @@ class UserService(
         try {
             telegramBot.sendMessage(
                 chatId = telegramId,
-                text = "Тебе предоставлен доступ к боту. Используй /start"
+                text = "Тебе предоставлен доступ к боту. Используй /start",
             )
         } catch (e: Exception) {
             log.debug("Could not notify user $telegramId: ${e.message}")
@@ -106,7 +106,7 @@ class UserService(
         try {
             telegramBot.sendMessage(
                 chatId = inviterId,
-                text = "Пользователь @$username активировал приглашение"
+                text = "Пользователь @$username активировал приглашение",
             )
         } catch (e: Exception) {
             log.debug("Could not notify inviter $inviterId: ${e.message}")

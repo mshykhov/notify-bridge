@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service
 @Service
 class AuthorizationService(
     private val botUserFacade: BotUserFacade,
-    private val adminProperties: AdminProperties
+    private val adminProperties: AdminProperties,
 ) {
     fun isAuthorized(telegramId: Long, requiredRole: UserRole?): Boolean {
         if (telegramId == adminProperties.masterAdminId) return true

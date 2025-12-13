@@ -9,15 +9,15 @@ import org.springframework.transaction.annotation.Transactional
 @Component
 @Transactional
 class InvitationFacade(
-    private val invitationRepository: BotUserInvitationRepository
+    private val invitationRepository: BotUserInvitationRepository,
 ) {
     fun create(username: String, role: UserRole, createdBy: Long): BotUserInvitation =
         invitationRepository.save(
             BotUserInvitation(
                 username = username.lowercase(),
                 role = role,
-                createdBy = createdBy
-            )
+                createdBy = createdBy,
+            ),
         )
 
     fun findByUsername(username: String): BotUserInvitation? =

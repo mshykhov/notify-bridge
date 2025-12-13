@@ -4,15 +4,14 @@ import com.smhomelab.notifier.persistence.model.UserRole
 
 enum class BotCallbacks(
     val callback: String,
-    val requiredRole: UserRole = UserRole.USER
+    val requiredRole: UserRole = UserRole.USER,
 ) {
     // User - Settings
-    SETTINGS_NOTIFICATIONS("settings:notifications"),
-    SETTINGS_QUIET_HOURS("settings:quiet_hours"),
-    SETTINGS_CANCEL("settings:cancel"),
-    NOTIFY_ALL("notify:all"),
-    NOTIFY_IMPORTANT("notify:important"),
-    NOTIFY_OFF("notify:off"),
+    SETTINGS_PUSHOVER("settings:pushover"),
+    PUSHOVER_CONFIGURE("pushover:configure"),
+    PUSHOVER_TEST("pushover:test"),
+    PUSHOVER_REMOVE("pushover:remove"),
+    SETTINGS_BACK("settings:back"),
 
     // Admin
     ADMIN_ADD_BY_ID("admin:add:by_id", UserRole.ADMIN),
@@ -21,5 +20,5 @@ enum class BotCallbacks(
     ROLE_USER("role:USER", UserRole.ADMIN),
     ROLE_ADMIN("role:ADMIN", UserRole.ADMIN),
     REMOVE_USER("remove:user", UserRole.ADMIN),
-    REMOVE_INVITE("remove:invite", UserRole.ADMIN);
+    REMOVE_INVITE("remove:invite", UserRole.ADMIN),
 }

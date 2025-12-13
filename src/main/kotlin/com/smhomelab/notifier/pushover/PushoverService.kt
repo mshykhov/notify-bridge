@@ -6,13 +6,13 @@ import org.springframework.stereotype.Service
 @Service
 class PushoverService(
     private val client: PushoverClient,
-    private val properties: PushoverProperties
+    private val properties: PushoverProperties,
 ) {
     fun isEnabled(): Boolean = properties.enabled
 
     fun send(userKey: String, message: String, title: String? = null): Boolean {
         val response = client.sendMessage(
-            PushoverRequest(userKey = userKey, message = message, title = title)
+            PushoverRequest(userKey = userKey, message = message, title = title),
         )
         return response.status == 1
     }
@@ -21,19 +21,21 @@ class PushoverService(
         userKey: String,
         message: String,
         title: String? = null,
-        priority: Priority = Priority.NORMAL
+        priority: Priority = Priority.NORMAL,
     ): Boolean {
         val response = client.sendMessage(
-            PushoverRequest(userKey = userKey, message = message, title = title, priority = priority.value)
+            PushoverRequest(userKey = userKey, message = message, title = title, priority = priority.value),
         )
         return response.status == 1
     }
 
-    enum class Priority(val value: Int) {
+    enum class Priority(
+        val value: Int,
+    ) {
         LOWEST(-2),
         LOW(-1),
         NORMAL(0),
         HIGH(1),
-        EMERGENCY(2)
+        EMERGENCY(2),
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 interface BotUserInvitationRepository : JpaRepository<BotUserInvitation, Long> {
     fun findByUsernameIgnoreCase(username: String): BotUserInvitation?
+
     fun existsByUsernameIgnoreCase(username: String): Boolean
 
     @Modifying

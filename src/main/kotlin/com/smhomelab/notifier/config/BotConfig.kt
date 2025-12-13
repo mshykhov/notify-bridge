@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration
 @EnableTelegramBot
 class BotConfig(
     private val botCommandMenuService: BotCommandMenuService,
-    private val userService: UserService
+    private val userService: UserService,
 ) {
     @PostConstruct
     fun init() = runBlocking {

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service
 @Service
 class UserManagementService(
     private val userService: UserService,
-    private val invitationService: InvitationService
+    private val invitationService: InvitationService,
 ) {
     fun getUsersListText(): String {
         val users = userService.getAllUsers()
@@ -16,20 +16,23 @@ class UserManagementService(
         val usersText = if (users.isEmpty()) {
             "Нет зарегистрированных пользователей"
         } else {
-            users.mapIndexed { i, user ->
-                val username = user.username?.let { "@$it" } ?: "—"
-                val name = listOfNotNull(user.firstName, user.lastName)
-                    .joinToString(" ").ifEmpty { "—" }
-                "${i + 1}. $username ($name) — ${user.role}"
-            }.joinToString("\n")
+            users
+                .mapIndexed { i, user ->
+                    val username = user.username?.let { "@$it" } ?: "—"
+                    val name = listOfNotNull(user.firstName, user.lastName)
+                        .joinToString(" ")
+                        .ifEmpty { "—" }
+                    "${i + 1}. $username ($name) — ${user.role}"
+                }.joinToString("\n")
         }
 
         val invitationsText = if (invitations.isEmpty()) {
             ""
         } else {
-            "\n\nПриглашения:\n" + invitations.mapIndexed { i, inv ->
-                "${i + 1}. @${inv.username} — ${inv.role}"
-            }.joinToString("\n")
+            "\n\nПриглашения:\n" + invitations
+                .mapIndexed { i, inv ->
+                    "${i + 1}. @${inv.username} — ${inv.role}"
+                }.joinToString("\n")
         }
 
         return "Пользователи:\n$usersText$invitationsText"
@@ -70,18 +73,16 @@ class UserManagementService(
         return "Приглашение для @$username создано с ролью $role.\nПользователь получит доступ после /start"
     }
 
-    suspend fun addUser(data: String, role: UserRole, createdBy: Long): String {
-        return when {
-            data.startsWith("id:") -> {
-                val telegramId = data.removePrefix("id:").toLong()
-                addUserById(telegramId, role)
-            }
-            data.startsWith("username:") -> {
-                val username = data.removePrefix("username:")
-                addUserByUsername(username, role, createdBy)
-            }
-            else -> "Ошибка: неверный формат данных"
+    suspend fun addUser(data: String, role: UserRole, createdBy: Long): String = when {
+        data.startsWith("id:") -> {
+            val telegramId = data.removePrefix("id:").toLong()
+            addUserById(telegramId, role)
         }
+        data.startsWith("username:") -> {
+            val username = data.removePrefix("username:")
+            addUserByUsername(username, role, createdBy)
+        }
+        else -> "Ошибка: неверный формат данных"
     }
 
     suspend fun removeUser(telegramId: Long): String {
@@ -94,7 +95,5 @@ class UserManagementService(
         return "Приглашение для @$username удалено"
     }
 
-    fun hasUsersOrInvitations(): Boolean {
-        return userService.getAllUsers().isNotEmpty() || invitationService.getAll().isNotEmpty()
-    }
+    fun hasUsersOrInvitations(): Boolean = userService.getAllUsers().isNotEmpty() || invitationService.getAll().isNotEmpty()
 }

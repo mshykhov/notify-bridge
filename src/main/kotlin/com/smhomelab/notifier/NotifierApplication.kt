@@ -13,5 +13,5 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 class NotifierApplication
 
 fun main(args: Array<String>) {
-	runApplication<NotifierApplication>(*args)
+    runApplication<NotifierApplication>(*args)
 }

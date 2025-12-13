@@ -8,9 +8,7 @@ import org.springframework.context.annotation.Import
 @SpringBootTest
 @Import(TestcontainersConfig::class)
 class NotifierApplicationTests {
-
-	@Test
-	fun contextLoads() {
-	}
+    @Test
+    fun contextLoads() {
+    }
 }
-

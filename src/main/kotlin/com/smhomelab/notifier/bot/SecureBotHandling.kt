@@ -10,7 +10,7 @@ fun BotHandling.secureCommand(
     cmd: BotCommands,
     auth: AuthorizationService,
     next: String? = null,
-    action: suspend CommandContainer.() -> Unit
+    action: suspend CommandContainer.() -> Unit,
 ) {
     command(cmd.slashCommand, next) {
         if (!auth.isAuthorized(from.id, cmd.requiredRole)) return@command
@@ -22,7 +22,7 @@ fun BotHandling.secureCallback(
     cb: BotCallbacks,
     auth: AuthorizationService,
     next: String? = null,
-    action: suspend CallbackContainer.() -> Unit
+    action: suspend CallbackContainer.() -> Unit,
 ) {
     callback(cb.callback, next) {
         if (!auth.isAuthorized(from.id, cb.requiredRole)) return@callback
@@ -34,7 +34,7 @@ fun BotHandling.secureStep(
     step: BotSteps,
     auth: AuthorizationService,
     next: String? = null,
-    action: suspend TextMessageContainer.() -> Unit
+    action: suspend TextMessageContainer.() -> Unit,
 ) {
     step(step.step, next) {
         if (!auth.isAuthorized(from.id, step.requiredRole)) return@step
