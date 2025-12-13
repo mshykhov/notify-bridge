@@ -4,6 +4,7 @@ import com.smhomelab.notifier.bot.BotCallbacks
 import com.smhomelab.notifier.bot.BotCommands
 import com.smhomelab.notifier.bot.secureCallback
 import com.smhomelab.notifier.bot.secureCommand
+import com.smhomelab.notifier.service.AppInfoService
 import com.smhomelab.notifier.service.AuthorizationService
 import com.smhomelab.notifier.service.LimitsMonitorService
 import com.smhomelab.notifier.service.UserService
@@ -19,16 +20,19 @@ class AdminHandler(
     private val auth: AuthorizationService,
     private val limitsMonitorService: LimitsMonitorService,
     private val userService: UserService,
+    private val appInfoService: AppInfoService,
 ) : BotHandler({
 
         fun adminPanelText(): String {
             val limits = limitsMonitorService.getLimits()
             val limitsStatus = limitsMonitorService.formatStatusMessage(limits)
             val usersCount = userService.getAllUsers().size
+            val version = appInfoService.getVersion()
 
             return buildString {
                 appendLine("<b>🔧 Панель администратора</b>")
                 appendLine()
+                appendLine("📦 Версия: <b>$version</b>")
                 appendLine("👥 Пользователей: <b>$usersCount</b>")
                 appendLine()
                 append(limitsStatus)
