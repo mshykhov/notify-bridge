@@ -65,6 +65,7 @@ class UserService(
         )
         invitationService.delete(invitation.username)
         botCommandMenuService.updateCommandsForUser(user.telegramId, user.role)
+        notifyInviterAboutActivation(invitation.createdBy, invitation.username)
         log.info("User activated from invitation: @${invitation.username}, telegramId=$telegramId")
         return user
     }
@@ -98,6 +99,17 @@ class UserService(
             )
         } catch (e: Exception) {
             log.debug("Could not notify user $telegramId: ${e.message}")
+        }
+    }
+
+    private suspend fun notifyInviterAboutActivation(inviterId: Long, username: String) {
+        try {
+            telegramBot.sendMessage(
+                chatId = inviterId,
+                text = "Пользователь @$username активировал приглашение"
+            )
+        } catch (e: Exception) {
+            log.debug("Could not notify inviter $inviterId: ${e.message}")
         }
     }
 }
