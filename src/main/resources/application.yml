@@ -1,6 +1,10 @@
 notifier:
   admin:
     master-admin-id: ${MASTER_ADMIN_ID}
+  pushover:
+    enabled: ${PUSHOVER_ENABLED:false}
+    api-token: ${PUSHOVER_API_TOKEN:}
+    user-key: ${PUSHOVER_USER_KEY:}
 
 spring:
   application:
