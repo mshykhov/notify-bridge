@@ -14,6 +14,9 @@ import com.smhomelab.notifier.service.SettingsService.SendResult
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
 
 @HandlerComponent
 class SettingsHandler(
@@ -30,16 +33,13 @@ class SettingsHandler(
             callbackButton("📱 Pushover", BotCallbacks.SETTINGS_PUSHOVER.callback),
         )
 
-        fun testResultText(result: SendResult) = when (result) {
-            SendResult.Sent -> "✓ Тестовое уведомление отправлено!"
-            SendResult.Failed -> "✗ Не удалось отправить. Проверь ключ."
-            SendResult.Disabled -> "✗ Pushover временно недоступен."
-            SendResult.UserDisabled -> "✗ Уведомления отключены."
+        fun testMenuTextWithResult(result: SendResult?) = when (result) {
+            is SendResult.Sent -> "✓ Отправлено: ${result.priority.displayName}\n\nПриоритет:"
+            SendResult.Failed -> "✗ Ошибка отправки\n\nПриоритет:"
+            SendResult.Disabled -> "✗ Pushover недоступен\n\nПриоритет:"
+            SendResult.UserDisabled -> "✗ Уведомления выключены\n\nПриоритет:"
+            null -> "Приоритет:"
         }
-
-        val testResultKeyboard = inlineKeyboard(
-            callbackButton("« К Pushover", BotCallbacks.SETTINGS_PUSHOVER.callback),
-        )
 
         fun pushoverMenuText(enabled: Boolean): String {
             val statusIcon = if (enabled) "✓" else "⏸"
@@ -61,8 +61,6 @@ class SettingsHandler(
             callbackButton("« Назад", BotCallbacks.SETTINGS_BACK.callback),
         )
 
-        val testMenuText = "Выбери приоритет тестового уведомления:"
-
         val testMenuKeyboard = inlineKeyboard(
             callbackButton("🔇 Без звука", BotCallbacks.PUSHOVER_TEST_LOWEST.callback),
             callbackButton("🔈 Тихо", BotCallbacks.PUSHOVER_TEST_LOW.callback),
@@ -74,6 +72,7 @@ class SettingsHandler(
 
         // /settings - начало flow, отправляем новое сообщение
         secureCommand(BotCommands.SETTINGS, auth) {
+            logger.debug { "/settings from telegramId=${from.id}" }
             val configured = settingsService.isPushoverConfigured(from.id)
             sendMessage(
                 mainSettingsText(configured),
@@ -128,6 +127,7 @@ class SettingsHandler(
                 }
 
                 is ValidationResult.Valid -> {
+                    logger.debug { "Saving Pushover key for telegramId=${from.id}" }
                     settingsService.savePushoverKey(from.id, result.value)
                     next(null)
                     sendMessage(
@@ -145,6 +145,7 @@ class SettingsHandler(
         secureCallback(BotCallbacks.PUSHOVER_TOGGLE, auth) {
             val config = settingsService.getPushoverConfig(from.id) ?: return@secureCallback
             val newEnabled = !config.enabled
+            logger.debug { "Toggling Pushover enabled=$newEnabled for telegramId=${from.id}" }
             settingsService.setPushoverEnabled(from.id, newEnabled)
 
             editMessageText(
@@ -158,18 +159,18 @@ class SettingsHandler(
         secureCallback(BotCallbacks.PUSHOVER_TEST_MENU, auth) {
             editMessageText(
                 messageId = message.messageId,
-                text = testMenuText,
+                text = testMenuTextWithResult(null),
                 replyMarkup = testMenuKeyboard,
             )
         }
 
-        // Тесты - редактируем (результат на месте)
+        // Тесты - показываем результат в меню приоритетов
         secureCallback(BotCallbacks.PUSHOVER_TEST_LOWEST, auth) {
             val result = settingsService.sendTestNotification(from.id, NotificationPriority.LOWEST)
             editMessageText(
                 messageId = message.messageId,
-                text = testResultText(result),
-                replyMarkup = testResultKeyboard,
+                text = testMenuTextWithResult(result),
+                replyMarkup = testMenuKeyboard,
             )
         }
 
@@ -177,8 +178,8 @@ class SettingsHandler(
             val result = settingsService.sendTestNotification(from.id, NotificationPriority.LOW)
             editMessageText(
                 messageId = message.messageId,
-                text = testResultText(result),
-                replyMarkup = testResultKeyboard,
+                text = testMenuTextWithResult(result),
+                replyMarkup = testMenuKeyboard,
             )
         }
 
@@ -186,8 +187,8 @@ class SettingsHandler(
             val result = settingsService.sendTestNotification(from.id, NotificationPriority.NORMAL)
             editMessageText(
                 messageId = message.messageId,
-                text = testResultText(result),
-                replyMarkup = testResultKeyboard,
+                text = testMenuTextWithResult(result),
+                replyMarkup = testMenuKeyboard,
             )
         }
 
@@ -195,8 +196,8 @@ class SettingsHandler(
             val result = settingsService.sendTestNotification(from.id, NotificationPriority.HIGH)
             editMessageText(
                 messageId = message.messageId,
-                text = testResultText(result),
-                replyMarkup = testResultKeyboard,
+                text = testMenuTextWithResult(result),
+                replyMarkup = testMenuKeyboard,
             )
         }
 
@@ -204,13 +205,14 @@ class SettingsHandler(
             val result = settingsService.sendTestNotification(from.id, NotificationPriority.EMERGENCY)
             editMessageText(
                 messageId = message.messageId,
-                text = testResultText(result),
-                replyMarkup = testResultKeyboard,
+                text = testMenuTextWithResult(result),
+                replyMarkup = testMenuKeyboard,
             )
         }
 
         // Удаление - редактируем
         secureCallback(BotCallbacks.PUSHOVER_REMOVE, auth) {
+            logger.debug { "Removing Pushover config for telegramId=${from.id}" }
             settingsService.removePushoverConfig(from.id)
             editMessageText(
                 messageId = message.messageId,

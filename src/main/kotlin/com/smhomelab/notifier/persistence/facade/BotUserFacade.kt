@@ -3,8 +3,11 @@ package com.smhomelab.notifier.persistence.facade
 import com.smhomelab.notifier.persistence.model.BotUserEntity
 import com.smhomelab.notifier.persistence.model.UserRole
 import com.smhomelab.notifier.persistence.repository.BotUserRepository
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+
+private val logger = KotlinLogging.logger {}
 
 @Component
 @Transactional
@@ -29,17 +32,21 @@ class BotUserFacade(
         username: String? = null,
         firstName: String? = null,
         lastName: String? = null,
-    ): BotUserEntity = botUserRepository.save(
-        BotUserEntity(
-            telegramId = telegramId,
-            role = role,
-            username = username,
-            firstName = firstName,
-            lastName = lastName,
-        ),
-    )
+    ): BotUserEntity {
+        logger.debug { "Creating user: telegramId=$telegramId, role=$role, username=$username" }
+        return botUserRepository.save(
+            BotUserEntity(
+                telegramId = telegramId,
+                role = role,
+                username = username,
+                firstName = firstName,
+                lastName = lastName,
+            ),
+        )
+    }
 
     fun delete(telegramId: Long) {
+        logger.debug { "Deleting user: telegramId=$telegramId" }
         botUserRepository.deleteByTelegramId(telegramId)
     }
 
@@ -56,6 +63,7 @@ class BotUserFacade(
         if (user.username == username && user.firstName == firstName && user.lastName == lastName) {
             return
         }
+        logger.debug { "Updating user info: telegramId=$telegramId, username=$username" }
         user.username = username
         user.firstName = firstName
         user.lastName = lastName

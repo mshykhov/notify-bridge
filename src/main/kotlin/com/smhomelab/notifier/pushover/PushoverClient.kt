@@ -23,6 +23,8 @@ class PushoverClient(
             return PushoverResponse(status = 0, request = null)
         }
 
+        logger.debug { "Sending Pushover: userKey=${request.userKey.take(4)}..., priority=${request.priority}" }
+
         val headers = HttpHeaders().apply {
             contentType = MediaType.APPLICATION_FORM_URLENCODED
         }

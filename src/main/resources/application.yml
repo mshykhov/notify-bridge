@@ -5,6 +5,11 @@ notifier:
     enabled: ${PUSHOVER_ENABLED:false}
     api-token: ${PUSHOVER_API_TOKEN:}
 
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.smhomelab.notifier: ${LOG_LEVEL_APP:INFO}
+
 spring:
   application:
     name: notifier

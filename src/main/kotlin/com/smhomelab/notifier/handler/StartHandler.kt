@@ -9,6 +9,9 @@ import com.smhomelab.notifier.service.SettingsService
 import com.smhomelab.notifier.service.UserService
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
 
 @HandlerComponent
 class StartHandler(
@@ -21,6 +24,7 @@ class StartHandler(
         command(BotCommands.START.slashCommand) {
             val telegramId = from.id
             val username = from.username
+            logger.debug { "/start from telegramId=$telegramId, username=$username" }
 
             if (userService.existsByTelegramId(telegramId)) {
                 userService.cleanupOrphanedInvitation(username)
@@ -39,6 +43,7 @@ class StartHandler(
             if (username != null) {
                 val invitation = invitationService.findByUsername(username)
                 if (invitation != null) {
+                    logger.debug { "Found invitation for username=$username, activating user" }
                     userService.activateFromInvitation(invitation, telegramId, from.firstName, from.lastName)
                     sendMessage(
                         "Твой аккаунт активирован.\n\n" +

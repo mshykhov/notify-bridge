@@ -16,6 +16,9 @@ import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler
 import io.github.dehuckakpyt.telegrambot.model.telegram.InlineKeyboardButton
+import io.github.oshai.kotlinlogging.KotlinLogging
+
+private val logger = KotlinLogging.logger {}
 
 @HandlerComponent
 class UserManagementHandler(
@@ -27,11 +30,13 @@ class UserManagementHandler(
 
         // === LIST_USERS ===
         secureCommand(BotCommands.LIST_USERS, auth) {
+            logger.debug { "/list_users by adminId=${from.id}" }
             sendMessage(userManagementService.getUsersListText())
         }
 
         // === ADD_USER ===
         secureCommand(BotCommands.ADD_USER, auth) {
+            logger.debug { "/add_user by adminId=${from.id}" }
             sendMessage(
                 "Как добавить пользователя?",
                 replyMarkup = inlineKeyboard(
@@ -93,16 +98,21 @@ class UserManagementHandler(
         }
 
         secureCallback(BotCallbacks.ROLE_USER, auth) {
-            val message = userManagementService.addUser(transferred<String>(), UserRole.USER, from.id)
+            val data = transferred<String>()
+            logger.debug { "Adding user with role=USER, data=$data, by adminId=${from.id}" }
+            val message = userManagementService.addUser(data, UserRole.USER, from.id)
             sendMessage(message)
         }
 
         secureCallback(BotCallbacks.ROLE_ADMIN, auth) {
-            val message = userManagementService.addUser(transferred<String>(), UserRole.ADMIN, from.id)
+            val data = transferred<String>()
+            logger.debug { "Adding user with role=ADMIN, data=$data, by adminId=${from.id}" }
+            val message = userManagementService.addUser(data, UserRole.ADMIN, from.id)
             sendMessage(message)
         }
 
         secureCommand(BotCommands.REMOVE_USER, auth) {
+            logger.debug { "/remove_user by adminId=${from.id}" }
             if (!userManagementService.hasUsersOrInvitations()) {
                 sendMessage("Нет пользователей или приглашений для удаления")
                 return@secureCommand
@@ -135,12 +145,15 @@ class UserManagementHandler(
                 sendMessage("Ошибка: неверный ID")
                 return@secureCallback
             }
+            logger.debug { "Removing user telegramId=$telegramId, by adminId=${from.id}" }
             val message = userManagementService.removeUser(telegramId)
             sendMessage(message)
         }
 
         secureCallback(BotCallbacks.REMOVE_INVITE, auth) {
-            val message = userManagementService.removeInvitation(transferred<String>())
+            val username = transferred<String>()
+            logger.debug { "Removing invitation username=$username, by adminId=${from.id}" }
+            val message = userManagementService.removeInvitation(username)
             sendMessage(message)
         }
     })

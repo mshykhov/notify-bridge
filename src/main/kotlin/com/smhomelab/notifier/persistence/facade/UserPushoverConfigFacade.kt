@@ -3,8 +3,11 @@ package com.smhomelab.notifier.persistence.facade
 import com.smhomelab.notifier.persistence.model.UserPushoverConfig
 import com.smhomelab.notifier.persistence.repository.BotUserRepository
 import com.smhomelab.notifier.persistence.repository.UserPushoverConfigRepository
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+
+private val logger = KotlinLogging.logger {}
 
 @Component
 @Transactional
@@ -25,6 +28,7 @@ class UserPushoverConfigFacade(
     fun create(telegramId: Long, userKey: String): UserPushoverConfig {
         val userId = botUserRepository.findByTelegramId(telegramId)?.id
             ?: throw IllegalArgumentException("User not found: $telegramId")
+        logger.debug { "Creating pushover config: telegramId=$telegramId, userId=$userId" }
         return pushoverConfigRepository.save(
             UserPushoverConfig(userId = userId, userKey = userKey),
         )
@@ -47,6 +51,7 @@ class UserPushoverConfigFacade(
 
     fun deleteByTelegramId(telegramId: Long) {
         val userId = botUserRepository.findByTelegramId(telegramId)?.id ?: return
+        logger.debug { "Deleting pushover config: telegramId=$telegramId, userId=$userId" }
         pushoverConfigRepository.deleteByUserId(userId)
     }
 }
