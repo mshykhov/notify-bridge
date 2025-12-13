@@ -37,6 +37,8 @@ class PushoverService(
 
     fun fetchLimits(): PushoverLimits? = client.fetchLimits()
 
+    fun validateUserKey(userKey: String): Boolean = client.validateUserKey(userKey)
+
     fun send(
         userKey: String,
         message: String,

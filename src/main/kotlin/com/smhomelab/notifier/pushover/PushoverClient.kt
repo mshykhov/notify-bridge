@@ -111,8 +111,47 @@ class PushoverClient(
         val reset: Long,
     )
 
+    fun validateUserKey(userKey: String): Boolean {
+        if (!properties.enabled) {
+            logger.debug { "Pushover is disabled, skipping validation" }
+            return true
+        }
+
+        val headers = HttpHeaders().apply {
+            contentType = MediaType.APPLICATION_FORM_URLENCODED
+        }
+
+        val body = LinkedMultiValueMap<String, String>().apply {
+            add("token", properties.apiToken)
+            add("user", userKey)
+        }
+
+        return try {
+            val response = restTemplate.postForObject(
+                VALIDATE_URL,
+                HttpEntity(body, headers),
+                ValidateResponse::class.java,
+            )
+            val valid = response?.status == 1
+            logger.debug { "Pushover key validation: ${if (valid) "valid" else "invalid"}" }
+            valid
+        } catch (e: org.springframework.web.client.HttpClientErrorException) {
+            logger.debug { "Pushover key invalid: ${e.statusCode}" }
+            false
+        } catch (e: Exception) {
+            logger.error { "Failed to validate Pushover key: ${e.message}" }
+            false
+        }
+    }
+
+    private data class ValidateResponse(
+        val status: Int,
+        val errors: List<String>? = null,
+    )
+
     companion object {
         private const val MESSAGES_URL = "https://api.pushover.net/1/messages.json"
         private const val LIMITS_URL = "https://api.pushover.net/1/apps/limits.json"
+        private const val VALIDATE_URL = "https://api.pushover.net/1/users/validate.json"
     }
 }

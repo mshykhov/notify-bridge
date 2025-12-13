@@ -30,6 +30,9 @@ class SettingsService(
         if (!trimmed.matches(Regex("[A-Za-z0-9]+"))) {
             return ValidationResult.Invalid("Ключ может содержать только буквы и цифры.")
         }
+        if (!pushoverService.validateUserKey(trimmed)) {
+            return ValidationResult.Invalid("Ключ не найден в Pushover. Проверь правильность ключа.")
+        }
         return ValidationResult.Valid(trimmed)
     }
 
