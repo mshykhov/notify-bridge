@@ -7,6 +7,7 @@ import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.service.AppInfoService
 import com.smhomelab.notifier.service.AuthorizationService
 import com.smhomelab.notifier.service.LimitsMonitorService
+import com.smhomelab.notifier.service.SettingsService
 import com.smhomelab.notifier.service.UserService
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
@@ -21,16 +22,18 @@ class AdminHandler(
     private val limitsMonitorService: LimitsMonitorService,
     private val userService: UserService,
     private val appInfoService: AppInfoService,
+    private val settingsService: SettingsService,
 ) : BotHandler({
 
-        fun adminPanelText(forceRefresh: Boolean = false): String {
+        fun adminPanelText(telegramId: Long, forceRefresh: Boolean = false): String {
             val limits = if (forceRefresh) {
                 limitsMonitorService.refreshLimits()
             } else {
                 limitsMonitorService.getLimits()
             }
             val fetchedAt = limitsMonitorService.getLastFetchedAt()
-            val limitsStatus = limitsMonitorService.formatStatusMessage(limits, fetchedAt)
+            val zoneId = settingsService.getTimezone(telegramId)
+            val limitsStatus = limitsMonitorService.formatStatusMessage(limits, fetchedAt, zoneId)
             val usersCount = userService.getAllUsers().size
             val version = appInfoService.getVersion()
 
@@ -51,7 +54,7 @@ class AdminHandler(
         secureCommand(BotCommands.ADMIN, auth) {
             logger.debug { "/admin from telegramId=${from.id}" }
             sendMessage(
-                adminPanelText(),
+                adminPanelText(from.id),
                 replyMarkup = adminPanelKeyboard,
                 parseMode = "HTML",
             )
@@ -61,7 +64,7 @@ class AdminHandler(
             logger.debug { "Refreshing admin panel for telegramId=${from.id}" }
             editMessageText(
                 messageId = message.messageId,
-                text = adminPanelText(forceRefresh = true),
+                text = adminPanelText(from.id, forceRefresh = true),
                 replyMarkup = adminPanelKeyboard,
                 parseMode = "HTML",
             )

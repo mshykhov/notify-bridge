@@ -1,0 +1,1 @@
+ALTER TABLE bot_user ADD COLUMN timezone VARCHAR(32) DEFAULT 'UTC';

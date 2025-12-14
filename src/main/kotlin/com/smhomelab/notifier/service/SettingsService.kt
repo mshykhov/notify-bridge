@@ -3,11 +3,13 @@ package com.smhomelab.notifier.service
 import com.smhomelab.notifier.model.common.ValidationResult
 import com.smhomelab.notifier.model.pushover.NotificationPriority
 import com.smhomelab.notifier.model.pushover.SendResult
+import com.smhomelab.notifier.persistence.facade.BotUserFacade
 import com.smhomelab.notifier.persistence.facade.UserPushoverConfigFacade
 import com.smhomelab.notifier.persistence.model.UserPushoverConfig
 import com.smhomelab.notifier.pushover.PushoverService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
+import java.time.ZoneId
 
 private val logger = KotlinLogging.logger {}
 
@@ -15,6 +17,7 @@ private val logger = KotlinLogging.logger {}
 class SettingsService(
     private val pushoverConfigFacade: UserPushoverConfigFacade,
     private val pushoverService: PushoverService,
+    private val botUserFacade: BotUserFacade,
 ) {
     fun getPushoverConfig(telegramId: Long): UserPushoverConfig? =
         pushoverConfigFacade.findByTelegramId(telegramId)
@@ -93,6 +96,31 @@ class SettingsService(
             logger.warn { "Test notification failed: telegramId=$telegramId" }
             SendResult.Failed
         }
+    }
+
+    fun getTimezone(telegramId: Long): ZoneId =
+        try {
+            ZoneId.of(botUserFacade.getTimezone(telegramId))
+        } catch (_: Exception) {
+            ZoneId.of("UTC")
+        }
+
+    fun getTimezoneString(telegramId: Long): String =
+        botUserFacade.getTimezone(telegramId)
+
+    fun validateTimezone(input: String): ValidationResult<String> {
+        val trimmed = input.trim()
+        return try {
+            ZoneId.of(trimmed)
+            ValidationResult.Valid(trimmed)
+        } catch (_: Exception) {
+            ValidationResult.Invalid("Неверный формат. Примеры: Europe/Kiev, UTC, America/New_York")
+        }
+    }
+
+    fun setTimezone(telegramId: Long, timezone: String) {
+        botUserFacade.updateTimezone(telegramId, timezone)
+        logger.debug { "Set timezone=$timezone for telegramId=$telegramId" }
     }
 
     companion object {

@@ -11,6 +11,7 @@ import jakarta.persistence.Table
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import java.time.Instant
+import java.time.ZoneId
 
 @Entity
 @Table(name = "bot_user")
@@ -35,4 +36,12 @@ class BotUserEntity(
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     var updatedAt: Instant? = null,
-)
+    @Column(length = 32)
+    var timezone: String = "UTC",
+) {
+    fun getZoneId(): ZoneId = try {
+        if (timezone.isBlank()) ZoneId.of("UTC") else ZoneId.of(timezone)
+    } catch (_: Exception) {
+        ZoneId.of("UTC")
+    }
+}

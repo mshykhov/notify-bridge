@@ -11,6 +11,8 @@ import com.smhomelab.notifier.model.pushover.NotificationPriority
 import com.smhomelab.notifier.model.pushover.SendResult
 import com.smhomelab.notifier.service.AuthorizationService
 import com.smhomelab.notifier.service.SettingsService
+import com.smhomelab.notifier.util.TimeUtils
+import java.time.Instant
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
 import io.github.dehuckakpyt.telegrambot.factory.keyboard.inlineKeyboard
 import io.github.dehuckakpyt.telegrambot.handler.BotHandler
@@ -24,13 +26,14 @@ class SettingsHandler(
     private val settingsService: SettingsService,
 ) : BotHandler({
 
-        fun mainSettingsText(configured: Boolean): String {
-            val status = if (configured) "✓ Настроен" else "⚠️ Не настроен"
-            return "⚙️ Настройки\n\n📱 Pushover: $status"
+        fun mainSettingsText(pushoverConfigured: Boolean, timezone: String): String {
+            val pushoverStatus = if (pushoverConfigured) "✓ Настроен" else "⚠️ Не настроен"
+            return "⚙️ Настройки\n\n📱 Pushover: $pushoverStatus\n🕐 Часовой пояс: $timezone"
         }
 
         val mainSettingsKeyboard = inlineKeyboard(
             callbackButton("📱 Pushover", BotCallbacks.SETTINGS_PUSHOVER.callback),
+            callbackButton("🕐 Часовой пояс", BotCallbacks.SETTINGS_TIMEZONE.callback),
         )
 
         fun testMenuTextWithResult(result: SendResult?) = when (result) {
@@ -73,19 +76,21 @@ class SettingsHandler(
         // /settings - начало flow, отправляем новое сообщение
         secureCommand(BotCommands.SETTINGS, auth) {
             logger.debug { "/settings from telegramId=${from.id}" }
-            val configured = settingsService.isPushoverConfigured(from.id)
+            val pushoverConfigured = settingsService.isPushoverConfigured(from.id)
+            val timezone = settingsService.getTimezoneString(from.id)
             sendMessage(
-                mainSettingsText(configured),
+                mainSettingsText(pushoverConfigured, timezone),
                 replyMarkup = mainSettingsKeyboard,
             )
         }
 
         // Возврат в главные настройки - редактируем
         secureCallback(BotCallbacks.SETTINGS_BACK, auth) {
-            val configured = settingsService.isPushoverConfigured(from.id)
+            val pushoverConfigured = settingsService.isPushoverConfigured(from.id)
+            val timezone = settingsService.getTimezoneString(from.id)
             editMessageText(
                 messageId = message.messageId,
-                text = mainSettingsText(configured),
+                text = mainSettingsText(pushoverConfigured, timezone),
                 replyMarkup = mainSettingsKeyboard,
             )
         }
@@ -269,5 +274,90 @@ class SettingsHandler(
                     callbackButton("« К настройкам", BotCallbacks.SETTINGS_BACK.callback),
                 ),
             )
+        }
+
+        // ==================== Timezone ====================
+
+        fun timezoneMenuText(timezone: String, zoneId: java.time.ZoneId): String {
+            val currentTime = TimeUtils.formatFull(Instant.now(), zoneId)
+            return "🕐 Часовой пояс: $timezone\n\nТекущее время: $currentTime"
+        }
+
+        val timezoneMenuKeyboard = inlineKeyboard(
+            callbackButton("✏️ Изменить", BotCallbacks.TIMEZONE_CONFIGURE.callback),
+            callbackButton("« Назад", BotCallbacks.SETTINGS_BACK.callback),
+        )
+
+        // Меню timezone
+        secureCallback(BotCallbacks.SETTINGS_TIMEZONE, auth) {
+            val timezone = settingsService.getTimezoneString(from.id)
+            val zoneId = settingsService.getTimezone(from.id)
+            editMessageText(
+                messageId = message.messageId,
+                text = timezoneMenuText(timezone, zoneId),
+                replyMarkup = timezoneMenuKeyboard,
+            )
+        }
+
+        val enterTimezoneText = "Введи часовой пояс:\n\n" +
+            "Примеры: Europe/Kiev, UTC, America/New_York\n\n" +
+            "Список зон: en.wikipedia.org/wiki/List_of_tz_database_time_zones"
+
+        val enterTimezoneKeyboard = inlineKeyboard(
+            callbackButton("✗ Отмена", BotCallbacks.TIMEZONE_CANCEL.callback),
+        )
+
+        // Запрос timezone
+        secureCallback(BotCallbacks.TIMEZONE_CONFIGURE, auth) {
+            editMessageText(
+                messageId = message.messageId,
+                text = enterTimezoneText,
+                replyMarkup = enterTimezoneKeyboard,
+            )
+            next(BotSteps.GET_TIMEZONE.step, message.messageId)
+        }
+
+        // Отмена ввода timezone
+        secureCallback(BotCallbacks.TIMEZONE_CANCEL, auth) {
+            next(null)
+            val timezone = settingsService.getTimezoneString(from.id)
+            val zoneId = settingsService.getTimezone(from.id)
+            editMessageText(
+                messageId = message.messageId,
+                text = timezoneMenuText(timezone, zoneId),
+                replyMarkup = timezoneMenuKeyboard,
+            )
+        }
+
+        // Обработка ввода timezone
+        secureStep(BotSteps.GET_TIMEZONE, auth) {
+            val promptMessageId = transferred<Long>()
+            deleteMessage(message.messageId)
+
+            when (val result = settingsService.validateTimezone(text)) {
+                is ValidationResult.Invalid -> {
+                    editMessageText(
+                        messageId = promptMessageId,
+                        text = "❌ ${result.error}\n\n$enterTimezoneText",
+                        replyMarkup = enterTimezoneKeyboard,
+                    )
+                    next(BotSteps.GET_TIMEZONE.step, promptMessageId)
+                }
+
+                is ValidationResult.Valid -> {
+                    logger.debug { "Setting timezone=${result.value} for telegramId=${from.id}" }
+                    settingsService.setTimezone(from.id, result.value)
+                    next(null)
+                    val zoneId = settingsService.getTimezone(from.id)
+                    val currentTime = TimeUtils.formatFull(Instant.now(), zoneId)
+                    editMessageText(
+                        messageId = promptMessageId,
+                        text = "✓ Часовой пояс установлен: ${result.value}\n\nТекущее время: $currentTime",
+                        replyMarkup = inlineKeyboard(
+                            callbackButton("« К настройкам", BotCallbacks.SETTINGS_BACK.callback),
+                        ),
+                    )
+                }
+            }
         }
     })

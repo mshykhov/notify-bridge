@@ -69,4 +69,14 @@ class BotUserFacade(
         user.lastName = lastName
         botUserRepository.save(user)
     }
+
+    fun getTimezone(telegramId: Long): String =
+        botUserRepository.findByTelegramId(telegramId)?.timezone ?: "UTC"
+
+    fun updateTimezone(telegramId: Long, timezone: String) {
+        val user = botUserRepository.findByTelegramId(telegramId) ?: return
+        logger.debug { "Updating timezone: telegramId=$telegramId, timezone=$timezone" }
+        user.timezone = timezone
+        botUserRepository.save(user)
+    }
 }

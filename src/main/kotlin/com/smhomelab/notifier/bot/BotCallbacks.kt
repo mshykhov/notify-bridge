@@ -8,6 +8,9 @@ enum class BotCallbacks(
 ) {
     // User - Settings
     SETTINGS_PUSHOVER("settings:pushover"),
+    SETTINGS_TIMEZONE("settings:timezone"),
+    TIMEZONE_CONFIGURE("timezone:configure"),
+    TIMEZONE_CANCEL("timezone:cancel"),
     PUSHOVER_CONFIGURE("pushover:configure"),
     PUSHOVER_CANCEL("pushover:cancel"),
     PUSHOVER_TOGGLE("pushover:toggle"),

@@ -4,6 +4,7 @@ import com.smhomelab.notifier.config.AdminProperties
 import com.smhomelab.notifier.model.pushover.LimitThreshold
 import com.smhomelab.notifier.model.pushover.PushoverLimits
 import com.smhomelab.notifier.pushover.PushoverService
+import com.smhomelab.notifier.util.TimeUtils
 import io.github.dehuckakpyt.telegrambot.TelegramBot
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
@@ -14,7 +15,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
@@ -99,10 +99,7 @@ class LimitsMonitorService(
     }
 
     private fun buildLimitAlertMessage(limits: PushoverLimits, threshold: LimitThreshold): String {
-        val resetTime = DateTimeFormatter
-            .ofPattern("d MMM, HH:mm")
-            .withZone(ZoneId.of("UTC"))
-            .format(limits.resetAt)
+        val resetTime = TimeUtils.formatFull(limits.resetAt, ZoneId.of("UTC"))
 
         return buildString {
             appendLine("${threshold.emoji} <b>Pushover: осталось ${limits.remainingPercent}%</b>")
@@ -119,17 +116,14 @@ class LimitsMonitorService(
         return limits
     }
 
-    fun formatStatusMessage(limits: PushoverLimits?, fetchedAt: Instant?): String {
+    fun formatStatusMessage(limits: PushoverLimits?, fetchedAt: Instant?, zoneId: ZoneId): String {
         if (limits == null) {
             return "📊 <b>Pushover</b>: <i>нет данных</i>"
         }
 
         val statusEmoji = limits.currentThreshold()?.emoji ?: "✅"
-        val timeFormatter = DateTimeFormatter
-            .ofPattern("d MMM, HH:mm")
-            .withZone(ZoneId.of("UTC"))
-        val resetTime = timeFormatter.format(limits.resetAt)
-        val updatedTime = fetchedAt?.let { "${timeFormatter.format(it)} UTC" } ?: "—"
+        val resetTime = TimeUtils.formatFull(limits.resetAt, zoneId)
+        val updatedTime = fetchedAt?.let { TimeUtils.formatFull(it, zoneId) } ?: "—"
 
         return buildString {
             appendLine("📊 <b>Pushover</b>")
