@@ -44,7 +44,11 @@ class LimitsMonitorService(
         checkAndNotifyIfNeeded()
     }
 
-    fun getLimits(): PushoverLimits? = fetchAndCache()
+    fun getLimits(): PushoverLimits? = cachedLimits.get()?.limits ?: fetchAndCache()
+
+    fun refreshLimits(): PushoverLimits? = fetchAndCache()
+
+    fun getLastFetchedAt(): Instant? = cachedLimits.get()?.fetchedAt
 
     private fun checkAndNotifyIfNeeded() {
         val cached = cachedLimits.get()
@@ -97,7 +101,7 @@ class LimitsMonitorService(
     private fun buildLimitAlertMessage(limits: PushoverLimits, threshold: LimitThreshold): String {
         val resetTime = DateTimeFormatter
             .ofPattern("d MMM, HH:mm")
-            .withZone(ZoneId.systemDefault())
+            .withZone(ZoneId.of("UTC"))
             .format(limits.resetAt)
 
         return buildString {
@@ -115,16 +119,17 @@ class LimitsMonitorService(
         return limits
     }
 
-    fun formatStatusMessage(limits: PushoverLimits?): String {
+    fun formatStatusMessage(limits: PushoverLimits?, fetchedAt: Instant?): String {
         if (limits == null) {
             return "📊 <b>Pushover</b>: <i>нет данных</i>"
         }
 
         val statusEmoji = limits.currentThreshold()?.emoji ?: "✅"
-        val resetTime = DateTimeFormatter
+        val timeFormatter = DateTimeFormatter
             .ofPattern("d MMM, HH:mm")
-            .withZone(ZoneId.systemDefault())
-            .format(limits.resetAt)
+            .withZone(ZoneId.of("UTC"))
+        val resetTime = timeFormatter.format(limits.resetAt)
+        val updatedTime = fetchedAt?.let { "${timeFormatter.format(it)} UTC" } ?: "—"
 
         return buildString {
             appendLine("📊 <b>Pushover</b>")
@@ -132,6 +137,7 @@ class LimitsMonitorService(
             appendLine("$statusEmoji Осталось: <b>${limits.remaining}</b> из ${limits.limit}")
             appendLine("📈 Использовано: <b>${limits.used}</b> (${limits.usagePercent}%)")
             appendLine("🔄 Сброс: <b>$resetTime</b>")
+            append("🕐 Обновлено: <b>$updatedTime</b>")
         }
     }
 

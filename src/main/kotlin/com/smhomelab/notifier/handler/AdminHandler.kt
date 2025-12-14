@@ -23,9 +23,14 @@ class AdminHandler(
     private val appInfoService: AppInfoService,
 ) : BotHandler({
 
-        fun adminPanelText(): String {
-            val limits = limitsMonitorService.getLimits()
-            val limitsStatus = limitsMonitorService.formatStatusMessage(limits)
+        fun adminPanelText(forceRefresh: Boolean = false): String {
+            val limits = if (forceRefresh) {
+                limitsMonitorService.refreshLimits()
+            } else {
+                limitsMonitorService.getLimits()
+            }
+            val fetchedAt = limitsMonitorService.getLastFetchedAt()
+            val limitsStatus = limitsMonitorService.formatStatusMessage(limits, fetchedAt)
             val usersCount = userService.getAllUsers().size
             val version = appInfoService.getVersion()
 
@@ -40,7 +45,7 @@ class AdminHandler(
         }
 
         val adminPanelKeyboard = inlineKeyboard(
-            callbackButton("🔄 Обновить лимиты", BotCallbacks.ADMIN_LIMITS_REFRESH.callback),
+            callbackButton("🔄 Обновить", BotCallbacks.ADMIN_REFRESH.callback),
         )
 
         secureCommand(BotCommands.ADMIN, auth) {
@@ -52,11 +57,11 @@ class AdminHandler(
             )
         }
 
-        secureCallback(BotCallbacks.ADMIN_LIMITS_REFRESH, auth) {
-            logger.debug { "Refreshing limits for telegramId=${from.id}" }
+        secureCallback(BotCallbacks.ADMIN_REFRESH, auth) {
+            logger.debug { "Refreshing admin panel for telegramId=${from.id}" }
             editMessageText(
                 messageId = message.messageId,
-                text = adminPanelText(),
+                text = adminPanelText(forceRefresh = true),
                 replyMarkup = adminPanelKeyboard,
                 parseMode = "HTML",
             )
