@@ -6,7 +6,7 @@ import com.smhomelab.notifier.bot.secureCallback
 import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.service.AppInfoService
 import com.smhomelab.notifier.service.AuthorizationService
-import com.smhomelab.notifier.service.LimitsMonitorService
+import com.smhomelab.notifier.service.PushoverLimitsMonitorService
 import com.smhomelab.notifier.service.SettingsService
 import com.smhomelab.notifier.service.UserService
 import io.github.dehuckakpyt.telegrambot.annotation.HandlerComponent
@@ -19,7 +19,7 @@ private val logger = KotlinLogging.logger {}
 @HandlerComponent
 class AdminHandler(
     private val auth: AuthorizationService,
-    private val limitsMonitorService: LimitsMonitorService,
+    private val pushoverLimitsMonitor: PushoverLimitsMonitorService,
     private val userService: UserService,
     private val appInfoService: AppInfoService,
     private val settingsService: SettingsService,
@@ -27,13 +27,13 @@ class AdminHandler(
 
         fun adminPanelText(telegramId: Long, forceRefresh: Boolean = false): String {
             val limits = if (forceRefresh) {
-                limitsMonitorService.refreshLimits()
+                pushoverLimitsMonitor.refreshLimits()
             } else {
-                limitsMonitorService.getLimits()
+                pushoverLimitsMonitor.getLimits()
             }
-            val fetchedAt = limitsMonitorService.getLastFetchedAt()
+            val fetchedAt = pushoverLimitsMonitor.getLastFetchedAt()
             val zoneId = settingsService.getTimezone(telegramId)
-            val limitsStatus = limitsMonitorService.formatStatusMessage(limits, fetchedAt, zoneId)
+            val limitsStatus = pushoverLimitsMonitor.formatStatusMessage(limits, fetchedAt, zoneId)
             val usersCount = userService.getAllUsers().size
             val version = appInfoService.getVersion()
 

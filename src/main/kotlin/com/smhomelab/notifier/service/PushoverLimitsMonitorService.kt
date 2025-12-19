@@ -4,8 +4,8 @@ import com.smhomelab.notifier.config.AdminProperties
 import com.smhomelab.notifier.model.pushover.LimitThreshold
 import com.smhomelab.notifier.model.pushover.PushoverLimits
 import com.smhomelab.notifier.pushover.PushoverService
+import com.smhomelab.notifier.telegram.TelegramMessageService
 import com.smhomelab.notifier.util.TimeUtils
-import io.github.dehuckakpyt.telegrambot.TelegramBot
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.CoroutineScope
@@ -21,10 +21,10 @@ import java.util.concurrent.atomic.AtomicReference
 private val logger = KotlinLogging.logger {}
 
 @Service
-class LimitsMonitorService(
+class PushoverLimitsMonitorService(
     private val pushoverService: PushoverService,
     private val adminProperties: AdminProperties,
-    private val telegramBot: TelegramBot,
+    private val telegramMessageService: TelegramMessageService,
 ) {
     private val notifiedThresholds = ConcurrentHashMap.newKeySet<LimitThreshold>()
     private var lastResetTimestamp: Long = 0
@@ -34,7 +34,7 @@ class LimitsMonitorService(
     @PostConstruct
     fun init() {
         pushoverService.setLimitsMonitor { checkAndNotifyIfNeeded() }
-        logger.debug { "LimitsMonitorService registered with PushoverService" }
+        logger.debug { "PushoverLimitsMonitorService registered with PushoverService" }
     }
 
     @Scheduled(fixedRate = 600_000, initialDelay = 60_000)
@@ -86,14 +86,13 @@ class LimitsMonitorService(
 
         scope.launch {
             try {
-                telegramBot.sendMessage(
+                telegramMessageService.send(
                     chatId = adminProperties.masterAdminId,
                     text = message,
                     parseMode = "HTML",
                 )
             } catch (e: Exception) {
                 logger.error { "Failed to send limit alert to admin: ${e.message}" }
-                // TODO: send to alertmanager as fallback
             }
         }
     }

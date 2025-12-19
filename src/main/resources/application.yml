@@ -54,3 +54,16 @@ telegram-bot:
       enabled: false
     chat-status-event-source:
       enabled: false
+
+telegram:
+  rate-limit:
+    enabled: true
+    global:
+      requests-per-second: 30
+      burst: 5
+    per-chat:
+      requests-per-second: 1
+      burst: 2
+    retry:
+      max-attempts: 3
+      base-delay-ms: 1000

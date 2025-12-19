@@ -5,7 +5,7 @@ import com.smhomelab.notifier.persistence.facade.BotUserFacade
 import com.smhomelab.notifier.persistence.model.BotUserEntity
 import com.smhomelab.notifier.persistence.model.BotUserInvitation
 import com.smhomelab.notifier.persistence.model.UserRole
-import io.github.dehuckakpyt.telegrambot.TelegramBot
+import com.smhomelab.notifier.telegram.TelegramMessageService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 
@@ -17,7 +17,7 @@ class UserService(
     private val invitationService: InvitationService,
     private val botCommandMenuService: BotCommandMenuService,
     private val adminProperties: AdminProperties,
-    private val telegramBot: TelegramBot,
+    private val telegramMessageService: TelegramMessageService,
 ) {
     fun getAllUsers(): List<BotUserEntity> =
         botUserFacade.findAll().filter { it.telegramId != adminProperties.masterAdminId }
@@ -93,7 +93,7 @@ class UserService(
 
     private suspend fun notifyUserAboutAccess(telegramId: Long) {
         try {
-            telegramBot.sendMessage(
+            telegramMessageService.send(
                 chatId = telegramId,
                 text = "Тебе предоставлен доступ к боту. Используй /start",
             )
@@ -104,7 +104,7 @@ class UserService(
 
     private suspend fun notifyInviterAboutActivation(inviterId: Long, username: String) {
         try {
-            telegramBot.sendMessage(
+            telegramMessageService.send(
                 chatId = inviterId,
                 text = "Пользователь @$username активировал приглашение",
             )
