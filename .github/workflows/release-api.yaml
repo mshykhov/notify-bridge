@@ -48,6 +48,9 @@ jobs:
 
       - name: Build notifier-api
         run: ./gradlew :notifier-api:build
+        env:
+          REPSY_USERNAME: ${{ secrets.REPSY_USERNAME }}
+          REPSY_TOKEN: ${{ secrets.REPSY_TOKEN }}
 
       - name: Publish to Repsy
         run: ./gradlew :notifier-api:publish
