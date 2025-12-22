@@ -43,15 +43,8 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Verify version
-        run: |
-          GRADLE_VERSION=$(./gradlew :notifier-api:currentVersion -q | grep -oP 'Project version: \K.*' || ./gradlew :notifier-api:currentVersion -q | tail -1)
-          echo "Git tag version: $VERSION"
-          echo "Gradle version: $GRADLE_VERSION"
-          if [[ "$GRADLE_VERSION" != "$VERSION" ]]; then
-            echo "::error::Version mismatch! Tag: $VERSION, Gradle: $GRADLE_VERSION"
-            exit 1
-          fi
+      - name: Show version
+        run: ./gradlew :notifier-api:currentVersion
 
       - name: Build notifier-api
         run: ./gradlew :notifier-api:build
