@@ -8,7 +8,21 @@ plugins {
     `java-library`
 }
 
+// Workaround for git submodules (https://github.com/allegro/axion-release-plugin/issues/249)
+fun resolveGitDirectory(): String {
+    val gitFile = rootProject.file(".git")
+    return if (gitFile.isFile) {
+        val gitDir = gitFile.readText().substringAfter("gitdir:").trim()
+        rootProject.file(gitDir).absolutePath
+    } else {
+        gitFile.absolutePath
+    }
+}
+
 scmVersion {
+    repository {
+        directory.set(resolveGitDirectory())
+    }
     tag {
         prefix.set("notifier-api-v")
     }
