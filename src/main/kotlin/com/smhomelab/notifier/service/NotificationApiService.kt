@@ -8,7 +8,11 @@ import com.smhomelab.notifier.api.model.TelegramLimitsInfo
 import com.smhomelab.notifier.api.model.TelegramNotificationRequest
 import com.smhomelab.notifier.config.AdminProperties
 import com.smhomelab.notifier.config.PushoverProperties
+import com.smhomelab.notifier.exception.ChannelDisabledException
+import com.smhomelab.notifier.exception.ConfigurationMissingException
+import com.smhomelab.notifier.exception.SendFailedException
 import com.smhomelab.notifier.model.pushover.NotificationPriority
+import com.smhomelab.notifier.model.pushover.PushoverSound
 import com.smhomelab.notifier.persistence.facade.UserPushoverConfigFacade
 import com.smhomelab.notifier.pushover.PushoverService
 import com.smhomelab.notifier.telegram.TelegramMessageService
@@ -64,7 +68,10 @@ class NotificationApiService(
             throw ChannelDisabledException("pushover", "User has disabled Pushover notifications")
         }
 
-        val priority = NotificationPriority.entries.first { it.value == request.getPriority().value }
+        val priority = NotificationPriority.entries.first { it.value == request.priority.value }
+        val sound = request.sound?.let { apiSound ->
+            PushoverSound.fromApiValue(apiSound.value)
+        }
 
         val success = withContext(Dispatchers.IO) {
             pushoverService.send(
@@ -72,6 +79,7 @@ class NotificationApiService(
                 message = request.message,
                 title = request.title,
                 priority = priority,
+                sound = sound,
                 url = request.url,
                 urlTitle = request.urlTitle,
                 html = request.html,
@@ -83,7 +91,7 @@ class NotificationApiService(
             throw SendFailedException("pushover", "Pushover API returned failure")
         }
 
-        logger.info { "Pushover notification sent: priority=${request.priority}" }
+        logger.info { "Pushover notification sent: priority=${request.priority.name}" }
 
         return NotificationResponse(
             success = true,
