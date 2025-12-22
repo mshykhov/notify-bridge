@@ -18,16 +18,22 @@ java {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 }
 
 val telegramBotVersion = "0.13.4"
 
 dependencies {
+	// Notifier API
+	implementation(project(":notifier-api"))
+
 	// Spring Boot
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
