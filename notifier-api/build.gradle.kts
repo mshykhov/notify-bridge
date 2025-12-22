@@ -44,7 +44,7 @@ dependencyManagement {
 
 dependencies {
     // REST Client
-    api("com.smhomelab:rest-client-spring-boot-starter:0.1.0-SNAPSHOT")
+    api("com.smhomelab:rest-client-spring-boot-starter:0.1.0")
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
