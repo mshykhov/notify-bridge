@@ -1,19 +1,19 @@
+# syntax=docker/dockerfile:1
+
 # Build stage
 FROM gradle:8.11-jdk21 AS build
 WORKDIR /app
 
-ARG REPSY_USERNAME
-ARG REPSY_TOKEN
-ENV REPSY_USERNAME=${REPSY_USERNAME}
-ENV REPSY_TOKEN=${REPSY_TOKEN}
-
 COPY .git ./.git
 COPY build.gradle.kts settings.gradle.kts ./
 COPY notifier-api ./notifier-api
-RUN gradle dependencies --no-daemon
+
+RUN --mount=type=secret,id=gradle_props,target=/home/gradle/.gradle/gradle.properties \
+    gradle dependencies --no-daemon
 
 COPY src ./src
-RUN gradle bootJar --no-daemon
+RUN --mount=type=secret,id=gradle_props,target=/home/gradle/.gradle/gradle.properties \
+    gradle bootJar --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
