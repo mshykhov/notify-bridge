@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.smhomelab:notifier-api:0.1.0")
+    implementation("com.smhomelab:notifier-api:0.1.2")
 }
 ```
 
@@ -24,43 +24,43 @@ Add to `application.yml`:
 
 ```yaml
 smhomelab:
-  client:
-    enabled: true
-    base-url: https://notifier.your-domain.com
-    connect-timeout: 10s
-    read-timeout: 30s
-
+  notifier:
+    base-url: ${NOTIFIER_BASE_URL}
     oauth2:
-      enabled: true
-      token-uri: https://your-auth0-domain.auth0.com/oauth/token
-      client-id: your-client-id
-      client-secret: your-client-secret
-      audience: https://notifier.your-domain.com
-      scopes:
-        - notifications:send
-
-    retry:
-      enabled: true
-      max-attempts: 3
-      base-delay: 500ms
-      multiplier: 2.0
+      token-uri: ${AUTH0_TOKEN_URI}
+      client-id: ${NOTIFIER_AUTH0_CLIENT_ID}
+      client-secret: ${NOTIFIER_AUTH0_CLIENT_SECRET}
+      audience: ${NOTIFIER_AUTH0_AUDIENCE}
 ```
+
+### Auth0 Credentials
+
+Credentials are stored in Doppler (configured via terraform in `infrastructure/terraform/auth0`):
+
+| Doppler Variable | Description |
+|------------------|-------------|
+| `NOTIFIER_AUTH0_CLIENT_ID` | M2M application client ID |
+| `NOTIFIER_AUTH0_CLIENT_SECRET` | M2M application client secret |
+| `NOTIFIER_AUTH0_AUDIENCE` | API identifier (`https://api.notifier.com`) |
 
 ### Properties Reference
 
 | Property | Default | Description |
 |----------|---------|-------------|
-| `smhomelab.client.enabled` | `true` | Enable/disable client |
-| `smhomelab.client.base-url` | - | Notifier service URL |
-| `smhomelab.client.connect-timeout` | `10s` | Connection timeout |
-| `smhomelab.client.read-timeout` | `30s` | Read timeout |
-| `smhomelab.client.oauth2.enabled` | `true` | Enable OAuth2 auth |
-| `smhomelab.client.oauth2.token-uri` | - | OAuth2 token endpoint |
-| `smhomelab.client.oauth2.client-id` | - | OAuth2 client ID |
-| `smhomelab.client.oauth2.client-secret` | - | OAuth2 client secret |
-| `smhomelab.client.oauth2.audience` | - | OAuth2 audience |
-| `smhomelab.client.retry.enabled` | `true` | Enable retry |
-| `smhomelab.client.retry.max-attempts` | `3` | Max retry attempts |
+| `smhomelab.notifier.enabled` | `true` | Enable/disable client |
+| `smhomelab.notifier.base-url` | - | Notifier service URL |
+| `smhomelab.notifier.connect-timeout` | `10s` | Connection timeout |
+| `smhomelab.notifier.read-timeout` | `30s` | Read timeout |
+| `smhomelab.notifier.oauth2.enabled` | `true` | Enable OAuth2 auth |
+| `smhomelab.notifier.oauth2.token-uri` | - | Auth0 token endpoint |
+| `smhomelab.notifier.oauth2.client-id` | - | M2M client ID |
+| `smhomelab.notifier.oauth2.client-secret` | - | M2M client secret |
+| `smhomelab.notifier.oauth2.audience` | - | API audience |
+| `smhomelab.notifier.oauth2.scopes` | `send:telegram, send:pushover, read:limits` | OAuth2 scopes |
+| `smhomelab.notifier.retry.enabled` | `true` | Enable retry |
+| `smhomelab.notifier.retry.max-attempts` | `3` | Max retry attempts |
+| `smhomelab.notifier.retry.base-delay` | `500ms` | Base delay |
+| `smhomelab.notifier.retry.multiplier` | `2.0` | Backoff multiplier |
 
 ## Usage
 
@@ -70,7 +70,6 @@ class MyService(
     private val notifierClient: NotifierClient
 ) {
     suspend fun sendNotification() {
-        // Send Telegram notification
         val response = notifierClient.sendTelegram(
             TelegramNotificationRequest(
                 message = "Hello from my service!",
@@ -79,7 +78,6 @@ class MyService(
             )
         )
 
-        // Send Pushover notification
         val pushoverResponse = notifierClient.sendPushover(
             PushoverNotificationRequest(
                 message = "Important alert!",
@@ -89,7 +87,6 @@ class MyService(
             )
         )
 
-        // Get rate limits
         val limits = notifierClient.getLimits()
     }
 }

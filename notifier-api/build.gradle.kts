@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0"
+    kotlin("plugin.spring") version "2.1.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
     id("pl.allegro.tech.build.axion-release") version "1.18.16"
@@ -30,8 +31,12 @@ repositories {
     maven {
         url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
         credentials {
-            username = System.getenv("REPSY_USERNAME") ?: ""
-            password = System.getenv("REPSY_TOKEN") ?: ""
+            username = System.getenv("REPSY_USERNAME")
+                ?: providers.gradleProperty("repoUsername").orNull
+                ?: ""
+            password = System.getenv("REPSY_TOKEN")
+                ?: providers.gradleProperty("repoPassword").orNull
+                ?: ""
         }
     }
 }
@@ -44,7 +49,11 @@ dependencyManagement {
 
 dependencies {
     // REST Client
-    api("com.smhomelab:rest-client-spring-boot-starter:0.1.1")
+    api("com.smhomelab:rest-client:0.1.2")
+
+    // Spring Boot
+    implementation("org.springframework.boot:spring-boot-autoconfigure")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -91,8 +100,12 @@ publishing {
             name = "Repsy"
             url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
             credentials {
-                username = System.getenv("REPSY_USERNAME") ?: ""
-                password = System.getenv("REPSY_TOKEN") ?: ""
+                username = System.getenv("REPSY_USERNAME")
+                    ?: providers.gradleProperty("repoUsername").orNull
+                    ?: ""
+                password = System.getenv("REPSY_TOKEN")
+                    ?: providers.gradleProperty("repoPassword").orNull
+                    ?: ""
             }
         }
     }
