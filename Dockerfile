@@ -2,6 +2,11 @@
 FROM gradle:8.11-jdk21 AS build
 WORKDIR /app
 
+ARG REPSY_USERNAME
+ARG REPSY_TOKEN
+ENV REPSY_USERNAME=${REPSY_USERNAME}
+ENV REPSY_TOKEN=${REPSY_TOKEN}
+
 COPY .git ./.git
 COPY build.gradle.kts settings.gradle.kts ./
 COPY notifier-api ./notifier-api
