@@ -1,0 +1,68 @@
+name: Release API
+
+on:
+  push:
+    tags:
+      - 'notifier-api-v[0-9]+.[0-9]+.[0-9]+*'
+
+concurrency:
+  group: release-api-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish notifier-api to Repsy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Validate semver tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/notifier-api-v}"
+          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z]+(\.[0-9]+)?)?$ ]]; then
+            echo "::error::Invalid semver tag: $TAG"
+            echo "Expected format: notifier-api-vX.Y.Z, notifier-api-vX.Y.Z-prerelease"
+            exit 1
+          fi
+          echo "VERSION=$TAG" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify version
+        run: |
+          GRADLE_VERSION=$(./gradlew :notifier-api:currentVersion -q)
+          echo "Git tag version: $VERSION"
+          echo "Gradle version: $GRADLE_VERSION"
+          if [[ "$GRADLE_VERSION" != "$VERSION" ]]; then
+            echo "::error::Version mismatch! Tag: $VERSION, Gradle: $GRADLE_VERSION"
+            exit 1
+          fi
+
+      - name: Build notifier-api
+        run: ./gradlew :notifier-api:build
+
+      - name: Publish to Repsy
+        run: ./gradlew :notifier-api:publish
+        env:
+          REPSY_USERNAME: ${{ secrets.REPSY_USERNAME }}
+          REPSY_TOKEN: ${{ secrets.REPSY_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: notifier-api v${{ env.VERSION }}
+          generate_release_notes: true
+          files: |
+            notifier-api/build/libs/*.jar

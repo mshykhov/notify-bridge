@@ -2,12 +2,19 @@ plugins {
     kotlin("jvm") version "2.1.0"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+    id("pl.allegro.tech.build.axion-release") version "1.18.16"
     `maven-publish`
     `java-library`
 }
 
+scmVersion {
+    tag {
+        prefix.set("notifier-api-v")
+    }
+}
+
 group = "com.smhomelab"
-version = System.getenv("LIB_VERSION") ?: "0.1.0-SNAPSHOT"
+version = scmVersion.version
 description = "Notifier API client and DTOs"
 
 java {
