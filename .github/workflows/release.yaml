@@ -48,9 +48,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Create gradle.properties for build
+        env:
+          REPSY_USERNAME: ${{ secrets.REPSY_USERNAME }}
+          REPSY_TOKEN: ${{ secrets.REPSY_TOKEN }}
         run: |
-          echo "repoUsername=${{ secrets.REPSY_USERNAME }}" > gradle.properties.secret
-          echo "repoPassword=${{ secrets.REPSY_TOKEN }}" >> gradle.properties.secret
+          printf 'repoUsername=%s\nrepoPassword=%s\n' "$REPSY_USERNAME" "$REPSY_TOKEN" > gradle.properties.secret
 
       - name: Build and push
         uses: docker/build-push-action@v6
