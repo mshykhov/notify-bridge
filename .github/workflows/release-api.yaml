@@ -45,7 +45,7 @@ jobs:
 
       - name: Verify version
         run: |
-          GRADLE_VERSION=$(./gradlew :notifier-api:currentVersion -q)
+          GRADLE_VERSION=$(./gradlew :notifier-api:currentVersion -q | grep -oP 'Project version: \K.*' || ./gradlew :notifier-api:currentVersion -q | tail -1)
           echo "Git tag version: $VERSION"
           echo "Gradle version: $GRADLE_VERSION"
           if [[ "$GRADLE_VERSION" != "$VERSION" ]]; then
