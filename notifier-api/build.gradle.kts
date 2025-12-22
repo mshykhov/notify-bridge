@@ -21,13 +21,10 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
-        url = uri("https://repo.repsy.io/mvn/smhomelab/smhomelab")
-        credentials(HttpHeaderCredentials::class) {
-            name = "Authorization"
-            value = "Bearer ${System.getenv("REPSY_TOKEN") ?: ""}"
-        }
-        authentication {
-            create<HttpHeaderAuthentication>("header")
+        url = uri("https://repo.repsy.io/mvn/${System.getenv("REPSY_USERNAME") ?: "smhomelab"}/smhomelab")
+        credentials {
+            username = System.getenv("REPSY_USERNAME") ?: ""
+            password = System.getenv("REPSY_TOKEN") ?: ""
         }
     }
 }
@@ -86,12 +83,9 @@ publishing {
         maven {
             name = "Repsy"
             url = uri("https://repo.repsy.io/mvn/${System.getenv("REPSY_USERNAME") ?: "smhomelab"}/smhomelab")
-            credentials(HttpHeaderCredentials::class) {
-                name = "Authorization"
-                value = "Bearer ${System.getenv("REPSY_TOKEN") ?: ""}"
-            }
-            authentication {
-                create<HttpHeaderAuthentication>("header")
+            credentials {
+                username = System.getenv("REPSY_USERNAME") ?: ""
+                password = System.getenv("REPSY_TOKEN") ?: ""
             }
         }
     }
