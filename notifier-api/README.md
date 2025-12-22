@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.smhomelab:notifier-api:0.1.2")
+    implementation("com.smhomelab:notifier-api:0.1.3")
 }
 ```
 
