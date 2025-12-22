@@ -28,7 +28,7 @@ repositories {
     mavenLocal()
     mavenCentral()
     maven {
-        url = uri("https://repo.repsy.io/mvn/${System.getenv("REPSY_USERNAME") ?: "smhomelab"}/smhomelab")
+        url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
         credentials {
             username = System.getenv("REPSY_USERNAME") ?: ""
             password = System.getenv("REPSY_TOKEN") ?: ""
@@ -89,7 +89,7 @@ publishing {
     repositories {
         maven {
             name = "Repsy"
-            url = uri("https://repo.repsy.io/mvn/${System.getenv("REPSY_USERNAME") ?: "smhomelab"}/smhomelab")
+            url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
             credentials {
                 username = System.getenv("REPSY_USERNAME") ?: ""
                 password = System.getenv("REPSY_TOKEN") ?: ""
