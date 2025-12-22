@@ -9,14 +9,16 @@ object TimeUtils {
     private const val SHORT_FORMAT = "HH:mm:ss"
 
     fun formatFull(instant: Instant, zoneId: ZoneId): String {
-        val formatted = DateTimeFormatter.ofPattern(FULL_FORMAT)
+        val formatted = DateTimeFormatter
+            .ofPattern(FULL_FORMAT)
             .withZone(zoneId)
             .format(instant)
         return if (zoneId == ZoneId.of("UTC")) "$formatted UTC" else formatted
     }
 
     fun formatShort(instant: Instant, zoneId: ZoneId): String {
-        val formatted = DateTimeFormatter.ofPattern(SHORT_FORMAT)
+        val formatted = DateTimeFormatter
+            .ofPattern(SHORT_FORMAT)
             .withZone(zoneId)
             .format(instant)
         return if (zoneId == ZoneId.of("UTC")) "$formatted UTC" else formatted

@@ -86,7 +86,11 @@ class TelegramMessageService(
 
     private fun parseRetryAfter(message: String?): Int? {
         if (message == null) return null
-        return RETRY_AFTER_REGEX.find(message)?.groupValues?.get(1)?.toIntOrNull()
+        return RETRY_AFTER_REGEX
+            .find(message)
+            ?.groupValues
+            ?.get(1)
+            ?.toIntOrNull()
     }
 
     companion object {

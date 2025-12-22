@@ -1,9 +1,9 @@
 package com.smhomelab.notifier.config
 
 import com.smhomelab.notifier.api.model.ErrorResponse
-import com.smhomelab.notifier.service.ChannelDisabledException
-import com.smhomelab.notifier.service.ConfigurationMissingException
-import com.smhomelab.notifier.service.SendFailedException
+import com.smhomelab.notifier.exception.ChannelDisabledException
+import com.smhomelab.notifier.exception.ConfigurationMissingException
+import com.smhomelab.notifier.exception.SendFailedException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus

@@ -63,7 +63,9 @@ class ChatRateLimiters(
 
     fun size(): Int = limiters.size
 
-    private class TimestampedLimiter(val limiter: RateLimiter) {
+    private class TimestampedLimiter(
+        val limiter: RateLimiter,
+    ) {
         @Volatile
         var lastAccessTime: Long = System.currentTimeMillis()
             private set

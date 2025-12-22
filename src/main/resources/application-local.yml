@@ -1,0 +1,6 @@
+# Local development profile
+# Run with: ./gradlew bootRun --args='--spring.profiles.active=local'
+
+notifier:
+  auth0:
+    enabled: false

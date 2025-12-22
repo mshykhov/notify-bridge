@@ -7,6 +7,13 @@ notifier:
   healthchecks:
     enabled: ${HEALTHCHECKS_ENABLED:false}
     ping-url: ${HEALTHCHECKS_PING_URL:}
+  auth0:
+    enabled: ${AUTH0_ENABLED:true}
+    issuer: ${AUTH0_ISSUER:}
+    audience: ${AUTH0_AUDIENCE:}
+
+server:
+  port: ${SERVER_PORT:8080}
 
 logging:
   level:
@@ -54,6 +61,11 @@ telegram-bot:
       enabled: false
     chat-status-event-source:
       enabled: false
+
+# Disable client autoconfiguration (notifier only uses DTOs)
+smhomelab:
+  notifier:
+    enabled: false
 
 telegram:
   rate-limit:
