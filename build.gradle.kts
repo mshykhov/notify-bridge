@@ -46,7 +46,7 @@ repositories {
         url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
         credentials {
             username = findProperty("repoUsername") as String? ?: System.getenv("REPSY_USERNAME")
-            password = findProperty("repoPassword") as String? ?: System.getenv("REPSY_PASSWORD")
+            password = findProperty("repoPassword") as String? ?: System.getenv("REPSY_TOKEN")
         }
     }
 }
