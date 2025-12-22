@@ -1,5 +1,6 @@
 package com.smhomelab.notifier.api.client
 
+import com.smhomelab.notifier.api.model.HealthResponse
 import com.smhomelab.notifier.api.model.LimitsResponse
 import com.smhomelab.notifier.api.model.NotificationResponse
 import com.smhomelab.notifier.api.model.PushoverNotificationRequest
@@ -11,4 +12,8 @@ interface NotifierClient {
     suspend fun sendPushover(request: PushoverNotificationRequest): NotificationResponse
 
     suspend fun getLimits(): LimitsResponse
+
+    suspend fun health(): HealthResponse
+
+    suspend fun ping()
 }

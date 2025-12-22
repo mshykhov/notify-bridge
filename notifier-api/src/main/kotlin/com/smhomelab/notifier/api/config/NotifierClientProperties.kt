@@ -11,6 +11,18 @@ data class NotifierClientProperties(
     val readTimeout: Duration = Duration.ofSeconds(30),
     val oauth2: NotifierOAuth2Properties = NotifierOAuth2Properties(),
     val retry: NotifierRetryProperties = NotifierRetryProperties(),
+    val startupCheck: StartupCheckProperties = StartupCheckProperties(),
+)
+
+enum class StartupCheckMode {
+    DISABLED,
+    SOFT,
+    FAIL_FAST,
+}
+
+data class StartupCheckProperties(
+    val mode: StartupCheckMode = StartupCheckMode.SOFT,
+    val verifyAuth: Boolean = false,
 )
 
 data class NotifierOAuth2Properties(

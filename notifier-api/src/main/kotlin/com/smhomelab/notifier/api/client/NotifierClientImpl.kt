@@ -3,6 +3,7 @@ package com.smhomelab.notifier.api.client
 import com.smhomelab.client.core.RestClientImpl
 import com.smhomelab.client.core.get
 import com.smhomelab.client.core.post
+import com.smhomelab.notifier.api.model.HealthResponse
 import com.smhomelab.notifier.api.model.LimitsResponse
 import com.smhomelab.notifier.api.model.NotificationResponse
 import com.smhomelab.notifier.api.model.PushoverNotificationRequest
@@ -29,4 +30,13 @@ open class NotifierClientImpl(
         get<LimitsResponse>(
             path = "/api/v1/notifications/limits",
         ).getOrThrow()
+
+    override suspend fun health(): HealthResponse =
+        get<HealthResponse>(
+            path = "/actuator/health",
+        ).getOrThrow()
+
+    override suspend fun ping() {
+        get<Unit>(path = "/api/ping").getOrThrow()
+    }
 }
