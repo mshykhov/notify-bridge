@@ -5,10 +5,17 @@ plugins {
 	id("org.springframework.boot") version "3.4.1"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("org.jlleitschuh.gradle.ktlint") version "14.0.1"
+	id("pl.allegro.tech.build.axion-release") version "1.18.16"
+}
+
+scmVersion {
+	tag {
+		prefix.set("v")
+	}
 }
 
 group = "com.smhomelab"
-version = System.getenv("APP_VERSION") ?: "0.0.1-SNAPSHOT"
+version = scmVersion.version
 description = "Notification service with Telegram and Pushover"
 
 java {

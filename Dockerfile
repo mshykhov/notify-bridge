@@ -2,13 +2,13 @@
 FROM gradle:8.11-jdk21 AS build
 WORKDIR /app
 
-ARG APP_VERSION=0.0.1-SNAPSHOT
-
+COPY .git ./.git
 COPY build.gradle.kts settings.gradle.kts ./
+COPY notifier-api ./notifier-api
 RUN gradle dependencies --no-daemon
 
 COPY src ./src
-RUN APP_VERSION=${APP_VERSION} gradle bootJar --no-daemon
+RUN gradle bootJar --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
