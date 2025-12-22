@@ -63,7 +63,7 @@ dependencyManagement {
 
 dependencies {
     // REST Client
-    api("com.smhomelab:rest-client:0.1.6")
+    api("com.smhomelab:rest-client:0.1.7")
 
     // Spring Boot
     implementation("org.springframework.boot:spring-boot-autoconfigure")
