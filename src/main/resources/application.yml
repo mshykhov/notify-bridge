@@ -19,6 +19,9 @@ logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
     com.smhomelab.notifier: ${LOG_LEVEL_APP:INFO}
+  structured:
+    format:
+      console: ${LOG_FORMAT:ecs}
 
 spring:
   application:

@@ -4,3 +4,8 @@
 notifier:
   auth0:
     enabled: false
+
+logging:
+  structured:
+    format:
+      console: none
