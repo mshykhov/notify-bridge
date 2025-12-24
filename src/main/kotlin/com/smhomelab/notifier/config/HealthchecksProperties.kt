@@ -6,4 +6,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class HealthchecksProperties(
     val enabled: Boolean = false,
     val pingUrl: String = "",
+    val pushoverFailThreshold: Int = 3,
 )

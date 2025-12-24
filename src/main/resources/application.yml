@@ -7,6 +7,7 @@ notifier:
   healthchecks:
     enabled: ${HEALTHCHECKS_ENABLED:false}
     ping-url: ${HEALTHCHECKS_PING_URL:}
+    pushover-fail-threshold: ${PUSHOVER_FAIL_THRESHOLD:3}
   auth0:
     enabled: ${AUTH0_ENABLED:true}
     issuer: ${AUTH0_ISSUER:}

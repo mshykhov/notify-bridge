@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import java.util.concurrent.atomic.AtomicInteger
 import javax.sql.DataSource
 
 @Service
@@ -20,6 +21,7 @@ class HealthchecksPingService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val restTemplate = RestTemplate()
+    private val pushoverFailCount = AtomicInteger(0)
 
     @Scheduled(fixedRate = 60_000)
     fun ping() {
@@ -55,15 +57,30 @@ class HealthchecksPingService(
         HealthCheck("database", false, e.message)
     }
 
-    private fun checkPushoverApi(): HealthCheck = try {
-        val limits = pushoverClient.fetchLimits()
-        if (limits != null) {
-            HealthCheck("pushover", true)
-        } else {
-            HealthCheck("pushover", false, "API unreachable")
+    private fun checkPushoverApi(): HealthCheck {
+        val result = try {
+            pushoverClient.fetchLimits()
+        } catch (e: Exception) {
+            log.debug("Pushover API check exception: ${e.message}")
+            null
         }
-    } catch (e: Exception) {
-        HealthCheck("pushover", false, e.message)
+
+        if (result != null) {
+            val previousFails = pushoverFailCount.getAndSet(0)
+            if (previousFails > 0) {
+                log.info("Pushover API recovered after $previousFails failed attempts")
+            }
+            return HealthCheck("pushover", true)
+        }
+
+        val failCount = pushoverFailCount.incrementAndGet()
+        val threshold = properties.pushoverFailThreshold
+        return if (failCount >= threshold) {
+            HealthCheck("pushover", false, "API unreachable ($failCount consecutive failures)")
+        } else {
+            log.warn("Pushover API check failed ($failCount/$threshold), not failing healthcheck yet")
+            HealthCheck("pushover", true)
+        }
     }
 
     private fun sendPing() {
