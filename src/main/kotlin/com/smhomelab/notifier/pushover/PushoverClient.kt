@@ -41,11 +41,38 @@ class PushoverClient(
             }
         }
 
-        val headers = HttpHeaders().apply {
-            contentType = MediaType.APPLICATION_FORM_URLENCODED
+        val body = buildRequestBody(request)
+        var lastError: String? = null
+
+        repeat(properties.maxRetries) { attempt ->
+            try {
+                val response = doSendMessage(body)
+                if (response.status == 1) {
+                    if (attempt > 0) {
+                        logger.info { "Pushover message sent after ${attempt + 1} attempts" }
+                    } else {
+                        logger.debug { "Pushover message sent" }
+                    }
+                    return response
+                }
+                lastError = response.errors?.joinToString() ?: "Unknown API error"
+            } catch (e: Exception) {
+                lastError = e.message ?: "Unknown error"
+            }
+
+            if (attempt < properties.maxRetries - 1) {
+                val delay = (attempt + 1) * properties.retryDelayMs
+                logger.warn { "Pushover send failed (${attempt + 1}/${properties.maxRetries}): $lastError. Retry in ${delay}ms" }
+                Thread.sleep(delay)
+            }
         }
 
-        val body = LinkedMultiValueMap<String, String>().apply {
+        logger.error { "Failed to send Pushover message after ${properties.maxRetries} attempts: $lastError" }
+        return PushoverResponse(status = 0, request = null, errors = listOf(lastError ?: "Max retries exceeded"))
+    }
+
+    private fun buildRequestBody(request: PushoverRequest): LinkedMultiValueMap<String, String> =
+        LinkedMultiValueMap<String, String>().apply {
             add("token", properties.apiToken)
             add("user", request.userKey)
             add("message", request.message)
@@ -65,18 +92,15 @@ class PushoverClient(
             if (request.monospace) add("monospace", "1")
         }
 
-        return try {
-            val response = restTemplate.postForObject(
-                MESSAGES_URL,
-                HttpEntity(body, headers),
-                PushoverResponse::class.java,
-            )
-            logger.debug { "Pushover message sent: ${response?.status}" }
-            response ?: PushoverResponse(status = 0, request = null)
-        } catch (e: Exception) {
-            logger.error { "Failed to send Pushover message: ${e.message}" }
-            PushoverResponse(status = 0, request = null, errors = listOf(e.message ?: "Unknown error"))
+    private fun doSendMessage(body: LinkedMultiValueMap<String, String>): PushoverResponse {
+        val headers = HttpHeaders().apply {
+            contentType = MediaType.APPLICATION_FORM_URLENCODED
         }
+        return restTemplate.postForObject(
+            MESSAGES_URL,
+            HttpEntity(body, headers),
+            PushoverResponse::class.java,
+        ) ?: PushoverResponse(status = 0, request = null)
     }
 
     fun fetchLimits(): PushoverLimits? {

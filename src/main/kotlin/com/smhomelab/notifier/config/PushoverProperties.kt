@@ -6,4 +6,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 data class PushoverProperties(
     val enabled: Boolean = false,
     val apiToken: String = "",
+    val maxRetries: Int = 10,
+    val retryDelayMs: Long = 2000,
 )
