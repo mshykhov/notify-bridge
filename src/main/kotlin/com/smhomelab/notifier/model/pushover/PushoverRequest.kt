@@ -1,5 +1,8 @@
 package com.smhomelab.notifier.model.pushover
 
+import com.smhomelab.notifier.api.NotificationPriority
+import com.smhomelab.notifier.api.PushoverSound
+
 data class PushoverRequest(
     val userKey: String,
     val message: String,

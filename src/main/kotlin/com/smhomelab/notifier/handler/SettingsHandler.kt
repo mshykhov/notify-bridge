@@ -6,9 +6,10 @@ import com.smhomelab.notifier.bot.BotSteps
 import com.smhomelab.notifier.bot.secureCallback
 import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.bot.secureStep
+import com.smhomelab.notifier.api.NotificationPriority
 import com.smhomelab.notifier.model.common.ValidationResult
-import com.smhomelab.notifier.model.pushover.NotificationPriority
 import com.smhomelab.notifier.model.pushover.SendResult
+import com.smhomelab.notifier.model.pushover.botDisplayName
 import com.smhomelab.notifier.service.AuthorizationService
 import com.smhomelab.notifier.service.SettingsService
 import com.smhomelab.notifier.util.TimeUtils
@@ -37,7 +38,7 @@ class SettingsHandler(
         )
 
         fun testMenuTextWithResult(result: SendResult?) = when (result) {
-            is SendResult.Sent -> "✓ Отправлено: ${result.priority.displayName}\n\nПриоритет:"
+            is SendResult.Sent -> "✓ Отправлено: ${result.priority.botDisplayName}\n\nПриоритет:"
             SendResult.Failed -> "✗ Ошибка отправки\n\nПриоритет:"
             SendResult.Disabled -> "✗ Pushover недоступен\n\nПриоритет:"
             SendResult.UserDisabled -> "✗ Уведомления выключены\n\nПриоритет:"

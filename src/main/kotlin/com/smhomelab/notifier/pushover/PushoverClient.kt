@@ -4,7 +4,9 @@ import com.smhomelab.notifier.config.PushoverProperties
 import com.smhomelab.notifier.model.pushover.PushoverLimits
 import com.smhomelab.notifier.model.pushover.PushoverRequest
 import com.smhomelab.notifier.model.pushover.PushoverResponse
+import com.smhomelab.notifier.model.pushover.botDisplayName
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.delay
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -21,7 +23,7 @@ class PushoverClient(
 ) {
     private val restTemplate = RestTemplate()
 
-    fun sendMessage(request: PushoverRequest): PushoverResponse {
+    suspend fun sendMessage(request: PushoverRequest): PushoverResponse {
         if (!properties.enabled) {
             logger.debug { "Pushover is disabled, skipping message" }
             return PushoverResponse(status = 0, request = null)
@@ -32,8 +34,8 @@ class PushoverClient(
                 appendLine("Sending Pushover notification:")
                 appendLine("  user:     ${request.userKey.take(4)}...")
                 appendLine("  title:    ${request.title ?: "-"}")
-                appendLine("  priority: ${request.priority.displayName} (${request.priority.value})")
-                appendLine("  sound:    ${request.sound?.displayName ?: "default"}")
+                appendLine("  priority: ${request.priority.botDisplayName} (${request.priority.value})")
+                appendLine("  sound:    ${request.sound?.botDisplayName ?: "default"}")
                 request.ttl?.let { appendLine("  ttl:      ${it}s") }
                 request.retry?.let { appendLine("  retry:    ${it}s") }
                 request.expire?.let { appendLine("  expire:   ${it}s") }
@@ -63,7 +65,7 @@ class PushoverClient(
             if (attempt < properties.maxRetries - 1) {
                 val delay = (attempt + 1) * properties.retryDelayMs
                 logger.warn { "Pushover send failed (${attempt + 1}/${properties.maxRetries}): $lastError. Retry in ${delay}ms" }
-                Thread.sleep(delay)
+                delay(delay)
             }
         }
 
@@ -78,7 +80,7 @@ class PushoverClient(
             add("message", request.message)
             add("priority", request.priority.value.toString())
             request.title?.let { add("title", it) }
-            request.sound?.let { add("sound", it.apiValue) }
+            request.sound?.let { add("sound", it.value) }
             request.url?.let { add("url", it) }
             request.urlTitle?.let { add("url_title", it) }
             request.device?.let { add("device", it) }

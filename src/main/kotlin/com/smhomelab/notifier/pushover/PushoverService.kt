@@ -1,11 +1,11 @@
 package com.smhomelab.notifier.pushover
 
+import com.smhomelab.notifier.api.NotificationPriority
+import com.smhomelab.notifier.api.PushoverSound
 import com.smhomelab.notifier.config.PushoverProperties
 import com.smhomelab.notifier.model.pushover.LimitsMonitorCallback
-import com.smhomelab.notifier.model.pushover.NotificationPriority
 import com.smhomelab.notifier.model.pushover.PushoverLimits
 import com.smhomelab.notifier.model.pushover.PushoverRequest
-import com.smhomelab.notifier.model.pushover.PushoverSound
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Service
@@ -39,7 +39,7 @@ class PushoverService(
 
     fun validateUserKey(userKey: String): Boolean = client.validateUserKey(userKey)
 
-    fun send(
+    suspend fun send(
         userKey: String,
         message: String,
         title: String? = null,

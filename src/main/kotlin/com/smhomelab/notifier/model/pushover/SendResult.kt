@@ -1,5 +1,7 @@
 package com.smhomelab.notifier.model.pushover
 
+import com.smhomelab.notifier.api.NotificationPriority
+
 sealed interface SendResult {
     data class Sent(
         val priority: NotificationPriority,

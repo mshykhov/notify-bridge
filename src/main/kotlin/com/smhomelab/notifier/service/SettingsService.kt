@@ -1,8 +1,9 @@
 package com.smhomelab.notifier.service
 
+import com.smhomelab.notifier.api.NotificationPriority
 import com.smhomelab.notifier.model.common.ValidationResult
-import com.smhomelab.notifier.model.pushover.NotificationPriority
 import com.smhomelab.notifier.model.pushover.SendResult
+import com.smhomelab.notifier.model.pushover.botDisplayName
 import com.smhomelab.notifier.persistence.facade.BotUserFacade
 import com.smhomelab.notifier.persistence.facade.UserPushoverConfigFacade
 import com.smhomelab.notifier.persistence.model.UserPushoverConfig
@@ -62,7 +63,7 @@ class SettingsService(
 
     fun isServerPushoverEnabled(): Boolean = pushoverService.isEnabled()
 
-    fun sendTestNotification(
+    suspend fun sendTestNotification(
         telegramId: Long,
         priority: NotificationPriority = NotificationPriority.NORMAL,
     ): SendResult {
@@ -81,16 +82,16 @@ class SettingsService(
             return SendResult.UserDisabled
         }
         val sound = pushoverService.getDefaultSoundForPriority(priority)
-        val soundName = sound?.displayName ?: "По умолчанию"
+        val soundName = sound?.botDisplayName ?: "По умолчанию"
         val success = pushoverService.send(
             userKey = config.userKey,
-            message = "Тестовое уведомление от Notifier\nПриоритет: ${priority.displayName}\nЗвук: $soundName",
+            message = "Тестовое уведомление от Notifier\nПриоритет: ${priority.botDisplayName}\nЗвук: $soundName",
             title = "Тест",
             priority = priority,
             ttl = TEST_NOTIFICATION_TTL,
         )
         return if (success) {
-            logger.debug { "Test notification sent: telegramId=$telegramId, priority=${priority.displayName}, sound=$soundName" }
+            logger.debug { "Test notification sent: telegramId=$telegramId, priority=${priority.botDisplayName}, sound=$soundName" }
             SendResult.Sent(priority)
         } else {
             logger.warn { "Test notification failed: telegramId=$telegramId" }
