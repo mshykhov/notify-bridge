@@ -10,7 +10,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.springframework.beans.factory.DisposableBean
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.time.Instant
@@ -25,11 +28,15 @@ class PushoverLimitsMonitorService(
     private val pushoverService: PushoverService,
     private val adminProperties: AdminProperties,
     private val telegramMessageService: TelegramMessageService,
-) {
+) : DisposableBean {
     private val notifiedThresholds = ConcurrentHashMap.newKeySet<LimitThreshold>()
     private var lastResetTimestamp: Long = 0
     private val cachedLimits = AtomicReference<CachedLimits?>(null)
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    override fun destroy() {
+        scope.cancel()
+    }
 
     @PostConstruct
     fun init() {
