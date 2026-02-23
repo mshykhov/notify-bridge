@@ -10,22 +10,26 @@ import org.springframework.transaction.annotation.Transactional
 private val logger = KotlinLogging.logger {}
 
 @Component
-@Transactional
 class BotUserFacade(
     private val botUserRepository: BotUserRepository,
 ) {
+    @Transactional(readOnly = true)
     fun findByTelegramId(telegramId: Long): BotUserEntity? =
         botUserRepository.findByTelegramId(telegramId)
 
+    @Transactional(readOnly = true)
     fun existsByTelegramId(telegramId: Long): Boolean =
         botUserRepository.existsByTelegramId(telegramId)
 
+    @Transactional(readOnly = true)
     fun existsByUsername(username: String): Boolean =
         botUserRepository.existsByUsernameIgnoreCase(username.lowercase())
 
+    @Transactional(readOnly = true)
     fun findAll(): List<BotUserEntity> =
         botUserRepository.findAll()
 
+    @Transactional
     fun create(
         telegramId: Long,
         role: UserRole,
@@ -45,11 +49,13 @@ class BotUserFacade(
         )
     }
 
+    @Transactional
     fun delete(telegramId: Long) {
         logger.debug { "Deleting user: telegramId=$telegramId" }
         botUserRepository.deleteByTelegramId(telegramId)
     }
 
+    @Transactional
     fun updateUserInfo(telegramId: Long, username: String?, firstName: String?, lastName: String?) {
         val user = botUserRepository.findByTelegramId(telegramId) ?: return
         user.username = username
@@ -58,6 +64,7 @@ class BotUserFacade(
         botUserRepository.save(user)
     }
 
+    @Transactional
     fun updateUserInfoIfChanged(telegramId: Long, username: String?, firstName: String?, lastName: String?) {
         val user = botUserRepository.findByTelegramId(telegramId) ?: return
         if (user.username == username && user.firstName == firstName && user.lastName == lastName) {
@@ -70,9 +77,11 @@ class BotUserFacade(
         botUserRepository.save(user)
     }
 
+    @Transactional(readOnly = true)
     fun getTimezone(telegramId: Long): String =
         botUserRepository.findByTelegramId(telegramId)?.timezone ?: "UTC"
 
+    @Transactional
     fun updateTimezone(telegramId: Long, timezone: String) {
         val user = botUserRepository.findByTelegramId(telegramId) ?: return
         logger.debug { "Updating timezone: telegramId=$telegramId, timezone=$timezone" }

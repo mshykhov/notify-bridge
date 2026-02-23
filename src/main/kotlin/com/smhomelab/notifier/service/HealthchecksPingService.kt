@@ -3,13 +3,15 @@ package com.smhomelab.notifier.service
 import com.smhomelab.notifier.config.HealthchecksProperties
 import com.smhomelab.notifier.config.PushoverProperties
 import com.smhomelab.notifier.pushover.PushoverClient
-import org.slf4j.LoggerFactory
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.util.concurrent.atomic.AtomicInteger
 import javax.sql.DataSource
+
+private val log = KotlinLogging.logger {}
 
 @Service
 @ConditionalOnProperty(prefix = "notifier.healthchecks", name = ["enabled"], havingValue = "true")
@@ -19,7 +21,6 @@ class HealthchecksPingService(
     private val pushoverClient: PushoverClient,
     private val dataSource: DataSource,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
     private val restTemplate = RestTemplate()
     private val pushoverFailCount = AtomicInteger(0)
 
@@ -27,10 +28,8 @@ class HealthchecksPingService(
     fun ping() {
         val checks = mutableListOf<HealthCheck>()
 
-        // Check Database
         checks.add(checkDatabase())
 
-        // Check Pushover API (only if enabled)
         if (pushoverProperties.enabled) {
             checks.add(checkPushoverApi())
         }
@@ -41,7 +40,7 @@ class HealthchecksPingService(
             sendPing()
         } else {
             val reasons = failed.joinToString(", ") { "${it.name}: ${it.reason}" }
-            log.warn("Health checks failed: $reasons")
+            log.warn { "Health checks failed: $reasons" }
             sendFail(reasons)
         }
     }
@@ -61,14 +60,14 @@ class HealthchecksPingService(
         val result = try {
             pushoverClient.fetchLimits()
         } catch (e: Exception) {
-            log.debug("Pushover API check exception: ${e.message}")
+            log.debug { "Pushover API check exception: ${e.message}" }
             null
         }
 
         if (result != null) {
             val previousFails = pushoverFailCount.getAndSet(0)
             if (previousFails > 0) {
-                log.info("Pushover API recovered after $previousFails failed attempts")
+                log.info { "Pushover API recovered after $previousFails failed attempts" }
             }
             return HealthCheck("pushover", true)
         }
@@ -78,7 +77,7 @@ class HealthchecksPingService(
         return if (failCount >= threshold) {
             HealthCheck("pushover", false, "API unreachable ($failCount consecutive failures)")
         } else {
-            log.warn("Pushover API check failed ($failCount/$threshold), not failing healthcheck yet")
+            log.warn { "Pushover API check failed ($failCount/$threshold), not failing healthcheck yet" }
             HealthCheck("pushover", true)
         }
     }
@@ -86,9 +85,9 @@ class HealthchecksPingService(
     private fun sendPing() {
         try {
             restTemplate.getForEntity(properties.pingUrl, String::class.java)
-            log.debug("Healthchecks ping sent")
+            log.debug { "Healthchecks ping sent" }
         } catch (e: Exception) {
-            log.warn("Healthchecks ping failed: ${e.message}")
+            log.warn { "Healthchecks ping failed: ${e.message}" }
         }
     }
 
@@ -99,9 +98,9 @@ class HealthchecksPingService(
                 reason,
                 String::class.java,
             )
-            log.debug("Healthchecks fail sent: $reason")
+            log.debug { "Healthchecks fail sent: $reason" }
         } catch (e: Exception) {
-            log.warn("Healthchecks fail notification failed: ${e.message}")
+            log.warn { "Healthchecks fail notification failed: ${e.message}" }
         }
     }
 

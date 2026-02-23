@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 @Component
-@Transactional
 class InvitationFacade(
     private val invitationRepository: BotUserInvitationRepository,
 ) {
+    @Transactional
     fun create(username: String, role: UserRole, createdBy: Long): BotUserInvitation =
         invitationRepository.save(
             BotUserInvitation(
@@ -20,16 +20,20 @@ class InvitationFacade(
             ),
         )
 
+    @Transactional(readOnly = true)
     fun findByUsername(username: String): BotUserInvitation? =
         invitationRepository.findByUsernameIgnoreCase(username.lowercase())
 
+    @Transactional(readOnly = true)
     fun existsByUsername(username: String): Boolean =
         invitationRepository.existsByUsernameIgnoreCase(username.lowercase())
 
+    @Transactional
     fun delete(username: String) {
         invitationRepository.deleteByUsernameIgnoreCase(username.lowercase())
     }
 
+    @Transactional(readOnly = true)
     fun findAll(): List<BotUserInvitation> =
         invitationRepository.findAll()
 }
