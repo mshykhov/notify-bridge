@@ -8,7 +8,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class RateLimiterTest {
-
     @Test
     fun `first acquire succeeds immediately`() = runBlocking {
         val limiter = RateLimiter(tokensPerSecond = 1.0, maxTokens = 1)
@@ -43,7 +42,6 @@ class RateLimiterTest {
 }
 
 class ChatRateLimitersTest {
-
     @Test
     fun `different chats get independent limiters`() = runBlocking {
         val limiters = ChatRateLimiters(tokensPerSecond = 10.0, maxTokens = 1)

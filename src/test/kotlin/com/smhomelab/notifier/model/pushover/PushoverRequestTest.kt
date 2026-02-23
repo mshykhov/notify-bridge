@@ -7,7 +7,6 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
 
 class PushoverRequestTest {
-
     @Test
     fun `valid request is created successfully`() {
         assertDoesNotThrow {

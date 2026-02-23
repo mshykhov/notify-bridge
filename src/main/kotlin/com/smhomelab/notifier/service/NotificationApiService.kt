@@ -6,7 +6,6 @@ import com.smhomelab.notifier.api.model.PushoverLimitsInfo
 import com.smhomelab.notifier.api.model.PushoverNotificationRequest
 import com.smhomelab.notifier.api.model.TelegramLimitsInfo
 import com.smhomelab.notifier.api.model.TelegramNotificationRequest
-import com.smhomelab.notifier.api.PushoverSound
 import com.smhomelab.notifier.config.AdminProperties
 import com.smhomelab.notifier.config.PushoverProperties
 import com.smhomelab.notifier.exception.ChannelDisabledException

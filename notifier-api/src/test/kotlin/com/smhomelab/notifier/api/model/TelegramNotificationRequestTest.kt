@@ -7,7 +7,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 
 class TelegramNotificationRequestTest {
-
     @Test
     fun `valid request is created successfully`() {
         assertDoesNotThrow {

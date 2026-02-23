@@ -1,12 +1,12 @@
 package com.smhomelab.notifier.handler
 
+import com.smhomelab.notifier.api.NotificationPriority
 import com.smhomelab.notifier.bot.BotCallbacks
 import com.smhomelab.notifier.bot.BotCommands
 import com.smhomelab.notifier.bot.BotSteps
 import com.smhomelab.notifier.bot.secureCallback
 import com.smhomelab.notifier.bot.secureCommand
 import com.smhomelab.notifier.bot.secureStep
-import com.smhomelab.notifier.api.NotificationPriority
 import com.smhomelab.notifier.model.common.ValidationResult
 import com.smhomelab.notifier.model.pushover.SendResult
 import com.smhomelab.notifier.model.pushover.botDisplayName

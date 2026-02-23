@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class PushoverExtensionsTest {
-
     @Test
     fun `botDisplayName returns Russian text for all priorities`() {
         assertEquals("Без звука", NotificationPriority.LOWEST.botDisplayName)
