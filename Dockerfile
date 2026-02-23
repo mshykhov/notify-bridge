@@ -8,13 +8,11 @@ COPY .git ./.git
 COPY build.gradle.kts settings.gradle.kts ./
 COPY notifier-api ./notifier-api
 
-RUN --mount=type=secret,id=gradle_props,target=/home/gradle/.gradle/gradle.properties \
-    --mount=type=cache,target=/home/gradle/.gradle/caches \
+RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     gradle dependencies --no-daemon
 
 COPY src ./src
-RUN --mount=type=secret,id=gradle_props,target=/home/gradle/.gradle/gradle.properties \
-    --mount=type=cache,target=/home/gradle/.gradle/caches \
+RUN --mount=type=cache,target=/home/gradle/.gradle/caches \
     gradle bootJar --no-daemon
 
 # Runtime stage

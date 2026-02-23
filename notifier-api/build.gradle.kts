@@ -42,17 +42,6 @@ java {
 repositories {
     mavenLocal()
     mavenCentral()
-    maven {
-        url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
-        credentials {
-            username = System.getenv("REPSY_USERNAME")
-                ?: providers.gradleProperty("repoUsername").orNull
-                ?: ""
-            password = System.getenv("REPSY_TOKEN")
-                ?: providers.gradleProperty("repoPassword").orNull
-                ?: ""
-        }
-    }
 }
 
 dependencyManagement {
@@ -62,15 +51,19 @@ dependencyManagement {
 }
 
 dependencies {
-    // REST Client
-    api("com.smhomelab:rest-client:0.1.7")
-
     // Spring Boot
+    api("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
+    // Resilience4j (retry)
+    implementation("io.github.resilience4j:resilience4j-reactor:2.2.0")
+    implementation("io.github.resilience4j:resilience4j-retry:2.2.0")
+
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.13")
 
     // Test
@@ -97,8 +90,8 @@ publishing {
 
             pom {
                 name.set("notifier-api")
-                description.set("Notifier API client and DTOs for smhomelab")
-                url.set("https://github.com/mshykhov/smhomelab-notifier")
+                description.set("Notify Bridge API client library")
+                url.set("https://github.com/mshykhov/notify-bridge")
 
                 licenses {
                     license {
@@ -111,17 +104,6 @@ publishing {
     }
 
     repositories {
-        maven {
-            name = "Repsy"
-            url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
-            credentials {
-                username = System.getenv("REPSY_USERNAME")
-                    ?: providers.gradleProperty("repoUsername").orNull
-                    ?: ""
-                password = System.getenv("REPSY_TOKEN")
-                    ?: providers.gradleProperty("repoPassword").orNull
-                    ?: ""
-            }
-        }
+        mavenLocal()
     }
 }

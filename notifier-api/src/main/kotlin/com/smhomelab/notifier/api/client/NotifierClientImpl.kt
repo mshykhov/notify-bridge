@@ -1,8 +1,8 @@
 package com.smhomelab.notifier.api.client
 
-import com.smhomelab.client.core.RestClientImpl
-import com.smhomelab.client.core.get
-import com.smhomelab.client.core.post
+import com.smhomelab.notifier.api.http.RestClientImpl
+import com.smhomelab.notifier.api.http.get
+import com.smhomelab.notifier.api.http.post
 import com.smhomelab.notifier.api.model.HealthResponse
 import com.smhomelab.notifier.api.model.LimitsResponse
 import com.smhomelab.notifier.api.model.NotificationResponse

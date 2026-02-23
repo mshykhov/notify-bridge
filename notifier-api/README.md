@@ -1,20 +1,14 @@
 # notifier-api
 
-Client library for smhomelab Notifier service.
+Spring Boot starter client library for Notify Bridge service.
 
 ## Installation
 
 ### Gradle (Kotlin DSL)
 
 ```kotlin
-repositories {
-    maven {
-        url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
-    }
-}
-
 dependencies {
-    implementation("com.smhomelab:notifier-api:0.1.3")
+    implementation("com.smhomelab:notifier-api:0.1.0")
 }
 ```
 
@@ -33,16 +27,6 @@ smhomelab:
       audience: ${NOTIFIER_AUTH0_AUDIENCE}
 ```
 
-### Auth0 Credentials
-
-Credentials are stored in Doppler (configured via terraform in `infrastructure/terraform/auth0`):
-
-| Doppler Variable | Description |
-|------------------|-------------|
-| `NOTIFIER_AUTH0_CLIENT_ID` | M2M application client ID |
-| `NOTIFIER_AUTH0_CLIENT_SECRET` | M2M application client secret |
-| `NOTIFIER_AUTH0_AUDIENCE` | API identifier (`https://api.notifier.com`) |
-
 ### Properties Reference
 
 | Property | Default | Description |
@@ -52,7 +36,7 @@ Credentials are stored in Doppler (configured via terraform in `infrastructure/t
 | `smhomelab.notifier.connect-timeout` | `10s` | Connection timeout |
 | `smhomelab.notifier.read-timeout` | `30s` | Read timeout |
 | `smhomelab.notifier.oauth2.enabled` | `true` | Enable OAuth2 auth |
-| `smhomelab.notifier.oauth2.token-uri` | - | Auth0 token endpoint |
+| `smhomelab.notifier.oauth2.token-uri` | - | OAuth2 token endpoint |
 | `smhomelab.notifier.oauth2.client-id` | - | M2M client ID |
 | `smhomelab.notifier.oauth2.client-secret` | - | M2M client secret |
 | `smhomelab.notifier.oauth2.audience` | - | API audience |
@@ -67,23 +51,22 @@ Credentials are stored in Doppler (configured via terraform in `infrastructure/t
 ```kotlin
 @Service
 class MyService(
-    private val notifierClient: NotifierClient
+    private val notifierClient: NotifierClient,
 ) {
     suspend fun sendNotification() {
-        val response = notifierClient.sendTelegram(
+        notifierClient.sendTelegram(
             TelegramNotificationRequest(
                 message = "Hello from my service!",
                 parseMode = "HTML",
-                disableNotification = false
             )
         )
 
-        val pushoverResponse = notifierClient.sendPushover(
+        notifierClient.sendPushover(
             PushoverNotificationRequest(
                 message = "Important alert!",
                 title = "Alert",
                 priority = NotificationPriority.HIGH,
-                sound = PushoverSound.SIREN
+                sound = PushoverSound.SIREN,
             )
         )
 
@@ -101,10 +84,12 @@ class MyService(
 | `sendTelegram(request)` | Send Telegram notification |
 | `sendPushover(request)` | Send Pushover notification |
 | `getLimits()` | Get rate limit information |
+| `health()` | Service health check |
+| `ping()` | Simple ping |
 
 ### Models
 
-- `TelegramNotificationRequest` - Telegram message params
-- `PushoverNotificationRequest` - Pushover message with priority/sound
-- `NotificationResponse` - Response with message ID
-- `LimitsResponse` - Rate limit info
+- `TelegramNotificationRequest` — Telegram message params
+- `PushoverNotificationRequest` — Pushover message with priority/sound
+- `NotificationResponse` — Response with message ID
+- `LimitsResponse` — Rate limit info

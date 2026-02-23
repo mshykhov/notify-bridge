@@ -34,15 +34,9 @@ jobs:
 
       - name: Build
         run: ./gradlew build -x test
-        env:
-          REPSY_USERNAME: ${{ secrets.REPSY_USERNAME }}
-          REPSY_TOKEN: ${{ secrets.REPSY_TOKEN }}
 
       - name: Test
         run: ./gradlew test
-        env:
-          REPSY_USERNAME: ${{ secrets.REPSY_USERNAME }}
-          REPSY_TOKEN: ${{ secrets.REPSY_TOKEN }}
 
       - name: Check versions
         run: |

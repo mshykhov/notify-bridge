@@ -42,13 +42,6 @@ java {
 repositories {
     mavenCentral()
     mavenLocal()
-    maven {
-        url = uri("https://repo.repsy.io/mvn/smhomelub/smhomelab")
-        credentials {
-            username = findProperty("repoUsername") as String? ?: System.getenv("REPSY_USERNAME")
-            password = findProperty("repoPassword") as String? ?: System.getenv("REPSY_TOKEN")
-        }
-    }
 }
 
 val telegramBotVersion = "0.13.4"

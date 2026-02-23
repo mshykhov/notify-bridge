@@ -1,14 +1,12 @@
 package com.smhomelab.notifier.api.config
 
-import com.smhomelab.client.config.OAuth2Properties
-import com.smhomelab.client.config.RetryProperties
-import com.smhomelab.client.filter.AuthenticationFilter
-import com.smhomelab.client.filter.LoggingFilter
-import com.smhomelab.client.filter.RetryFilter
-import com.smhomelab.client.oauth2.ClientCredentialsTokenManager
-import com.smhomelab.client.oauth2.OAuth2TokenManager
 import com.smhomelab.notifier.api.client.NotifierClient
 import com.smhomelab.notifier.api.client.NotifierClientImpl
+import com.smhomelab.notifier.api.http.AuthenticationFilter
+import com.smhomelab.notifier.api.http.ClientCredentialsTokenManager
+import com.smhomelab.notifier.api.http.LoggingFilter
+import com.smhomelab.notifier.api.http.OAuth2TokenManager
+import com.smhomelab.notifier.api.http.RetryFilter
 import io.netty.channel.ChannelOption
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
@@ -48,7 +46,7 @@ class NotifierClientAutoConfiguration(
                 .filter(LoggingFilter())
                 .build()
 
-        return ClientCredentialsTokenManager(properties.oauth2.toOAuth2Properties(), tokenWebClient)
+        return ClientCredentialsTokenManager(properties.oauth2, tokenWebClient)
     }
 
     @Bean
@@ -79,7 +77,7 @@ class NotifierClientAutoConfiguration(
         }
 
         if (properties.retry.enabled) {
-            builder.filter(RetryFilter(properties.retry.toRetryProperties()))
+            builder.filter(RetryFilter(properties.retry))
         }
 
         return builder.build()
@@ -88,23 +86,4 @@ class NotifierClientAutoConfiguration(
     @Bean
     @ConditionalOnMissingBean
     fun notifierClient(notifierWebClient: WebClient): NotifierClient = NotifierClientImpl(notifierWebClient)
-
-    private fun NotifierOAuth2Properties.toOAuth2Properties() =
-        OAuth2Properties(
-            enabled = enabled,
-            tokenUri = tokenUri,
-            clientId = clientId,
-            clientSecret = clientSecret,
-            audience = audience,
-            scopes = scopes,
-        )
-
-    private fun NotifierRetryProperties.toRetryProperties() =
-        RetryProperties(
-            enabled = enabled,
-            maxAttempts = maxAttempts,
-            baseDelay = baseDelay,
-            multiplier = multiplier,
-            retryableStatusCodes = retryableStatusCodes,
-        )
 }
