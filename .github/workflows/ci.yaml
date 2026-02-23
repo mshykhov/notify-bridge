@@ -12,6 +12,8 @@ jobs:
   build:
     name: Build and Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,6 +29,9 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
       - name: Build
         run: ./gradlew build -x test
         env:
@@ -35,7 +40,6 @@ jobs:
 
       - name: Test
         run: ./gradlew test
-        continue-on-error: true
         env:
           REPSY_USERNAME: ${{ secrets.REPSY_USERNAME }}
           REPSY_TOKEN: ${{ secrets.REPSY_TOKEN }}
