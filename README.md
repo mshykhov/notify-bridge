@@ -1,214 +1,71 @@
 # Notify Bridge
 
-Multi-channel notification service with a Telegram bot UI and REST API. Routes alerts through **Telegram** and **Pushover** (critical alerts with iOS DND bypass).
+A Kotlin and Spring Boot notification service with a Telegram bot, Pushover integration, and an OAuth2-protected REST API. PostgreSQL stores users, invitations, and notification settings.
 
-Built with Kotlin 2.1, Spring Boot 3.4, and PostgreSQL.
+## Run locally
 
-## Architecture
-
-```
-                     ┌──────────────────────┐
-                     │    REST API (OAuth2)  │
-                     │  POST /notifications  │
-                     └──────────┬───────────┘
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        │                       │                       │
-        ▼                       ▼                       ▼
- ┌─────────────┐      ┌────────────────┐      ┌────────────────┐
- │  Telegram    │      │   Pushover     │      │  Rate Limiter  │
- │  Bot API     │      │   API          │      │  (Token Bucket)│
- └──────┬──────┘      └───────┬────────┘      └────────────────┘
-        │                     │
-        ▼                     ▼
- ┌─────────────┐      ┌────────────────┐
- │  Bot UI     │      │  iOS/Android   │
- │  (commands, │      │  Push with     │
- │  keyboards) │      │  DND bypass    │
- └─────────────┘      └────────────────┘
-        │
-        ▼
- ┌─────────────────────────────────────┐
- │  PostgreSQL + Flyway Migrations     │
- │  (users, invitations, pushover cfg) │
- └─────────────────────────────────────┘
-```
-
-**Layered architecture:**
-
-```
-Handler (Telegram UI)  →  Service (Business Logic)  →  Facade (@Transactional)  →  Repository (JPA)
-Controller (REST API)  →  Service                   →  Facade                   →  Repository
-```
-
-## Features
-
-- **Telegram Bot** — inline keyboards, multi-step dialogs, role-based commands
-- **Pushover Integration** — priorities from silent (-2) to emergency (+2), custom sounds, DND bypass
-- **REST API** — OAuth2/JWT-protected endpoints for programmatic notifications
-- **Rate Limiting** — global + per-chat Token Bucket rate limiter for Telegram API
-- **Invitation System** — user access controlled through admin invitations
-- **Limits Monitoring** — automatic alerts when Pushover usage reaches thresholds (50%, 25%, 10%, 5%)
-- **Health Checks** — integrated healthchecks.io monitoring with DB and API checks
-- **Client Library** — `notifier-api` module with Spring Boot AutoConfiguration for service-to-service calls
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|-----------|
-| Language | Kotlin 2.1, Java 21 |
-| Framework | Spring Boot 3.4 |
-| Security | Spring Security, OAuth2 Resource Server (Auth0) |
-| Database | PostgreSQL 17, Spring Data JPA, Flyway |
-| Bot | [telegram-bot](https://github.com/DEHuckaback/telegram-bot) library |
-| Notifications | Telegram Bot API, Pushover API |
-| Build | Gradle (Kotlin DSL), axion-release (SemVer from Git tags) |
-| CI/CD | GitHub Actions, Docker (multi-stage), ArgoCD |
-| Testing | JUnit 5, Testcontainers, Mockito-Kotlin |
-
-## Quick Start
+Requires Java 21, Docker with Compose, a Telegram bot from [BotFather](https://t.me/BotFather), and an Auth0 API for REST authentication.
 
 ```bash
-# Start PostgreSQL
-docker-compose up -d
-
-# Configure environment
+git clone https://github.com/mshykhov/notify-bridge.git
+cd notify-bridge
 cp .env.example .env
-# Edit .env with your Telegram bot token and other settings
-
-# Run
-./gradlew bootRun
-
-# Format code
-./gradlew ktlintFormat
 ```
 
-### Required Environment Variables
+Set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, and your numeric `MASTER_ADMIN_ID`. Set `AUTH0_ISSUER` and `AUTH0_AUDIENCE` for your Auth0 API. The example database settings match the local Compose service.
 
-| Variable | Description |
-|----------|-------------|
-| `TELEGRAM_BOT_TOKEN` | Telegram bot token from [@BotFather](https://t.me/BotFather) |
-| `TELEGRAM_BOT_USERNAME` | Bot username (without @) |
-| `MASTER_ADMIN_ID` | Telegram user ID of the master admin |
-| `DB_HOST`, `DB_PORT`, `DB_NAME` | PostgreSQL connection |
-| `DB_USERNAME`, `DB_PASSWORD` | Database credentials |
+```bash
+docker compose up -d postgres
+./gradlew bootRun --args='--spring.config.import=file:.env[.properties]'
+```
 
-### Optional Environment Variables
+The explicit [Spring config import](https://docs.spring.io/spring-boot/3.4/reference/features/external-config.html#features.external-config.files.importing.extensionless) loads `.env` as Java properties; keep values unquoted. `bootRun` alone does not load that file. With the example settings, the server listens on port 8090.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PUSHOVER_ENABLED` | `false` | Enable Pushover integration |
-| `PUSHOVER_API_TOKEN` | — | Pushover API token |
-| `AUTH0_ENABLED` | `true` | Enable OAuth2 for REST API |
-| `AUTH0_ISSUER` | — | Auth0 issuer URL |
-| `AUTH0_AUDIENCE` | — | Auth0 API audience |
-| `LOG_FORMAT` | `none` | `ecs` for JSON (Loki), `none` for plain text |
+Open your bot and use `/start`. The master admin can invite users through `/admin`; users configure Pushover and timezone through `/settings`. Pushover is optional: enable `PUSHOVER_ENABLED` and supply `PUSHOVER_API_TOKEN` to use it.
 
 ## REST API
 
-All endpoints require OAuth2 JWT authentication (when `AUTH0_ENABLED=true`).
+Keep `AUTH0_ENABLED=true` and request a JWT with the scopes needed by your client. Disabling the resource-server configuration does not remove method-level scope checks.
 
-| Method | Path | Scope | Description |
-|--------|------|-------|-------------|
-| `POST` | `/api/v1/notifications/telegram` | `send:telegram` | Send Telegram message |
-| `POST` | `/api/v1/notifications/pushover` | `send:pushover` | Send Pushover notification |
-| `GET` | `/api/v1/notifications/limits` | `read:limits` | Get usage limits |
-| `GET` | `/api/ping` | authenticated | Health check |
-| `GET` | `/actuator/health` | public | Spring Actuator health |
+| Method | Path | Required scope |
+|---|---|---|
+| POST | `/api/v1/notifications/telegram` | `send:telegram` |
+| POST | `/api/v1/notifications/pushover` | `send:pushover` |
+| GET | `/api/v1/notifications/limits` | `read:limits` |
+| GET | `/api/ping` | Authenticated |
+| GET | `/actuator/health` | Public |
 
-### Example: Send Telegram Notification
+This sends a real message to `MASTER_ADMIN_ID`:
 
 ```bash
-curl -X POST http://localhost:8090/api/v1/notifications/telegram \
+curl http://localhost:8090/api/v1/notifications/telegram \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"message": "Server disk usage above 90%", "parseMode": "HTML"}'
+  -d '{"message":"Example notification","parseMode":"HTML"}'
 ```
 
-## Telegram Bot Commands
+## Client library
 
-| Command | Role | Description |
-|---------|------|-------------|
-| `/start` | Public | Register (requires invitation) |
-| `/help` | User | List available commands |
-| `/settings` | User | Configure Pushover, timezone |
-| `/admin` | Admin | Admin panel |
-| `/list_users` | Admin | List registered users |
-| `/add_user` | Admin | Create invitation for new user |
-| `/remove_user` | Admin | Remove user |
-
-## Project Structure
-
-```
-notifier/
-├── src/main/kotlin/.../notifier/
-│   ├── bot/            # Bot commands, callbacks, steps, security DSL
-│   ├── config/         # Spring config, properties, security
-│   ├── controller/     # REST API endpoints
-│   ├── handler/        # Telegram bot event handlers
-│   ├── model/          # Domain models, sealed classes
-│   ├── persistence/    # JPA entities, repositories, facades
-│   ├── pushover/       # Pushover API client and service
-│   ├── service/        # Business logic
-│   ├── telegram/       # Rate limiting, message service
-│   └── util/           # Utilities
-├── src/main/resources/
-│   ├── application.yml
-│   └── db/migration/   # Flyway migrations (V1-V6)
-├── notifier-api/       # Client library module (published to Maven)
-├── .github/workflows/  # CI, Release, Release-API
-├── Dockerfile          # Multi-stage build (Alpine JRE, non-root)
-└── docker-compose.yml  # Local development (PostgreSQL)
-```
-
-## Client Library (notifier-api)
-
-The `notifier-api` module is a Spring Boot starter that other services can use to send notifications programmatically.
-
-```kotlin
-// build.gradle.kts
-dependencies {
-    implementation("com.smhomelab:notifier-api:0.1.0")
-}
-```
-
-```yaml
-# application.yml
-smhomelab:
-  notifier:
-    base-url: http://notifier:8090
-    oauth2:
-      token-uri: https://your-tenant.auth0.com/oauth/token
-      client-id: ${NOTIFIER_CLIENT_ID}
-      client-secret: ${NOTIFIER_CLIENT_SECRET}
-      audience: https://api.your-app.com
-```
-
-```kotlin
-@Service
-class AlertService(private val notifierClient: NotifierClient) {
-
-    suspend fun sendAlert(message: String) {
-        notifierClient.sendTelegram(
-            TelegramNotificationRequest(message = message, parseMode = "HTML")
-        )
-    }
-}
-```
-
-## Testing
+`notifier-api` contains a Spring Boot client and DTOs. Its publishing configuration targets Maven Local:
 
 ```bash
-# Unit tests
-./gradlew test
-
-# Integration tests (requires Docker)
-./gradlew integrationTest
-
-# All tests
-./gradlew test integrationTest
+./gradlew :notifier-api:publishToMavenLocal
+./gradlew :notifier-api:currentVersion
 ```
 
-## License
+Add `mavenLocal()` to the consuming project's repositories, then depend on `com.smhomelab:notifier-api:<reported-version>`. Configure `smhomelab.notifier.base-url` and its `oauth2` properties (`token-uri`, `client-id`, `client-secret`, `audience`). No Maven Central publication is assumed.
 
-MIT
+## Structure and checks
+
+- `src/main/kotlin/`: bot handlers, REST controllers, services, rate limiting, and persistence.
+- `src/main/resources/db/migration/`: Flyway schema migrations.
+- `notifier-api/`: reusable HTTP client.
+- `docker-compose.yml`: local PostgreSQL.
+
+```bash
+./gradlew test                   # Unit tests
+./gradlew integrationTest        # Testcontainers; requires Docker
+./gradlew ktlintFormat           # Kotlin formatting
+```
+
+[MIT License](LICENSE)
